@@ -1,5 +1,6 @@
 const Order = require('../models/order.model');
 const stockService = require('../services/stock.service');
+const orderQueue = require('../queue/orderQueue');
 
 exports.placeOrder = async (req, res) => {
     try {
@@ -31,8 +32,11 @@ exports.placeOrder = async (req, res) => {
             'PENDING' // Orders start as PENDING
         );
 
+        // Add the order to the BullMQ processing queue
+        await orderQueue.add('process-order', { orderId: order.id });
+
         res.status(201).json({
-            message: 'Order placed successfully',
+            message: 'Order placed successfully and queued for execution',
             order
         });
     } catch (error) {

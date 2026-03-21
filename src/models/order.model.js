@@ -17,6 +17,17 @@ class Order {
         const { rows } = await pool.query(query, [userId]);
         return rows;
     }
+
+    static async updateStatus(orderId, status) {
+        const query = `
+          UPDATE orders 
+          SET status = $1, updated_at = CURRENT_TIMESTAMP
+          WHERE id = $2
+          RETURNING *;
+        `;
+        const { rows } = await pool.query(query, [status, orderId]);
+        return rows[0];
+    }
 }
 
 module.exports = Order;
