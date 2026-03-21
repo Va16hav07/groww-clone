@@ -5,6 +5,7 @@ const cors = require('cors');
 const healthRoutes = require('./routes/health.routes');
 const authRoutes = require('./routes/auth.routes');
 const orderRoutes = require('./routes/order.routes');
+const priceRoutes = require('./routes/price.routes');
 
 // Import middlewares
 const { apiLimiter } = require('./middleware/rateLimit.middleware');
@@ -23,6 +24,7 @@ app.use('/api', apiLimiter);
 app.use('/api', healthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/prices', priceRoutes);
 
 // Catch-all specific to 404
 app.use((req, res) => {
