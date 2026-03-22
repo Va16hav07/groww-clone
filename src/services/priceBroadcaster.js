@@ -16,24 +16,25 @@ let intervalId = null;
 const startBroadcasting = () => {
     if (intervalId) return; // already running
 
-    console.log('[Price Broadcaster] Starting live market data feed...');
+    console.log('[Price Broadcaster] Starting live market data feed (sequential)...');
 
-    // Poll every 5 seconds
+    // Poll every 10 seconds to accommodate 1 req/sec limit
     intervalId = setInterval(async () => {
         try {
             const newPrices = {};
 
-            // Concurrently fetch prices for all tracked symbols to speed up the loop
-            const promises = TRACKED_SYMBOLS.map(async (symbol) => {
+            // Changed to sequential to respect the 1 req/sec API limit of Indian Stock API
+            for (const symbol of TRACKED_SYMBOLS) {
                 try {
                     const price = await stockService.getLatestPrice(symbol);
                     newPrices[symbol] = price;
+
+                    // Wait 1.2 seconds between requests to avoid rate limits
+                    await new Promise(resolve => setTimeout(resolve, 1200));
                 } catch (err) {
                     console.error(`[Price Broadcaster] Failed to fetch ${symbol}:`, err.message);
                 }
-            });
-
-            await Promise.all(promises);
+            }
 
             if (Object.keys(newPrices).length > 0) {
                 // Cache the newest prices into Redis using a Hash
@@ -45,7 +46,7 @@ const startBroadcasting = () => {
         } catch (error) {
             console.error('[Price Broadcaster] Loop Error:', error.message);
         }
-    }, 5000);
+    }, 10000);
 };
 
 const stopBroadcasting = () => {

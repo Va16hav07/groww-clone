@@ -1,6 +1,13 @@
 const Order = require('../models/order.model');
 const stockService = require('../services/stock.service');
 const orderQueue = require('../queue/orderQueue');
+const Redis = require('ioredis');
+
+const redis = new Redis({
+    host: process.env.REDIS_HOST || '127.0.0.1',
+    port: process.env.REDIS_PORT || 6379,
+    maxRetriesPerRequest: null
+});
 
 exports.placeOrder = async (req, res) => {
     try {
@@ -19,8 +26,16 @@ exports.placeOrder = async (req, res) => {
             return res.status(400).json({ error: 'Quantity must be greater than 0' });
         }
 
-        // Fetch live market price from Indian Stock API
-        const livePrice = await stockService.getLatestPrice(symbol);
+        // Fetch market price from Redis Cache to avoid hitting 1 req/s Indian Stock API limit
+        let livePrice = await redis.hget('live_prices', symbol.toUpperCase());
+
+        if (!livePrice) {
+            // Fallback to strict API if not in cache (highly discouraged for high traffic)
+            console.warn(`[OMS] Cache miss for ${symbol}. Fetching live...`);
+            livePrice = await stockService.getLatestPrice(symbol);
+        } else {
+            livePrice = parseFloat(livePrice);
+        }
 
         // Create the order in the database
         const order = await Order.create(

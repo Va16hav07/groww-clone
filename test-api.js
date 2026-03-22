@@ -3,9 +3,7 @@ const axios = require('axios');
 
 async function testApi() {
     try {
-        const res = await axios.get('https://stock.indianapi.in/stock?name=RELIANCE', {
-            headers: { 'x-api-key': process.env.INDIAN_STOCK_API_KEY }
-        });
+        const res = await axios.get('http://localhost:8001/stock?name=RELIANCE');
 
         // Find the current price
         let price = null;

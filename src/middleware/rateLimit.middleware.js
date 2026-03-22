@@ -1,15 +1,16 @@
 const rateLimit = require('express-rate-limit');
 
-// Rate limiting middleware
-// Allows max 100 requests per 15 minutes per IP address
+// API rate limiter
 const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+    max: 2000, // Limit each IP to 2000 requests per `window` for load testing
     message: {
-        error: 'Too many requests from this IP, please try again after 15 minutes',
+        error: "Too many requests from this IP, please try again after 15 minutes."
     },
     standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
     legacyHeaders: false, // Disable the `X-RateLimit-*` headers
 });
 
-module.exports = { apiLimiter };
+module.exports = {
+    apiLimiter
+};

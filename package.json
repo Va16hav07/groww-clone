@@ -4,9 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "echo 'Error: no test specified' && exit 1",
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "dev": "concurrently 'nodemon src/server.js' 'nodemon gateway/server.js'"
   },
   "repository": {
     "type": "git",
@@ -21,11 +21,14 @@
   },
   "homepage": "https://github.com/Va16hav07/groww-clone#readme",
   "dependencies": {
+    "autocannon": "^8.0.0",
     "axios": "^1.13.6",
     "bcryptjs": "^3.0.3",
     "bullmq": "^5.71.0",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
+    "expo": "^55.0.8",
+    "expo-secure-store": "~55.0.9",
     "express": "^5.2.1",
     "express-rate-limit": "^8.3.1",
     "ioredis": "^5.10.1",
@@ -33,6 +36,7 @@
     "pg": "^8.19.0"
   },
   "devDependencies": {
+    "concurrently": "^9.2.1",
     "nodemon": "^3.1.14"
   }
 }
