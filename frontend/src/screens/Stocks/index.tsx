@@ -1,7 +1,10 @@
-import React, { useState, useContext } from "react";
-import { View, ScrollView, Image, Text, TouchableOpacity, TextInput } from "react-native";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import React, { useState, useContext, useEffect } from "react";
+import { View, ScrollView, Image, Text, TouchableOpacity, TextInput, ActivityIndicator } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { AuthContext } from "../../context/AuthContext";
+import { fetchWithAuth } from "../../services/api";
+import EventSource from "react-native-sse";
+import BottomNavBar from "../../components/BottomNavBar";
 
 interface StocksScreenProps {
   onNavigateToProfile?: () => void;
@@ -15,29 +18,128 @@ interface AuthContextType {
   user: User | null;
 }
 
+interface PriceData {
+  [key: string]: string | number;
+}
+
+interface StockData {
+  symbol: string;
+  name: string;
+  price: string | number;
+  change: string;
+}
+
 export default function StocksScreen({ onNavigateToProfile }: StocksScreenProps): React.ReactElement {
 	const [textInput1, onChangeTextInput1] = useState<string>('');
 	const { user } = useContext(AuthContext) as AuthContextType;
 	const userInitial = user?.name?.charAt(0)?.toUpperCase() || 'U';
+	const [prices, setPrices] = useState<PriceData>({});
+	const [loading, setLoading] = useState<boolean>(true);
+
+	useEffect(() => {
+		let eventSource: InstanceType<typeof EventSource> | null = null;
+
+		const connectToStream = () => {
+			try {
+				const apiUrl = process.env.EXPO_PUBLIC_API_URL || 'http://localhost:8000/api';
+				console.log(`Connecting to: ${apiUrl}/prices/stream`);
+				eventSource = new EventSource(`${apiUrl}/prices/stream`);
+
+				eventSource.addEventListener("message", (event) => {
+					try {
+						console.log('Received event:', event.data);
+						if (event.data) {
+							const data = JSON.parse(event.data);
+							console.log('Parsed prices:', data);
+							setPrices(data);
+							setLoading(false);
+						}
+					} catch (error) {
+						console.error('Error parsing price data:', error);
+					}
+				});
+
+				eventSource.addEventListener("error", (error) => {
+					console.error('EventSource error:', error);
+					eventSource?.close();
+					// Reconnect after 3 seconds
+					setTimeout(connectToStream, 3000);
+				});
+
+			} catch (error) {
+				console.error('Error connecting to price stream:', error);
+				setLoading(false);
+			}
+		};
+
+		connectToStream();
+
+		return () => {
+			eventSource?.close();
+		};
+	}, []);
+
+	const stockNames: { [key: string]: string } = {
+		'RELIANCE': 'Reliance',
+		'TCS': 'TCS',
+		'HDFCBANK': 'HDFC Bank',
+		'INFY': 'Infosys'
+	};
+
+	const stockChanges: { [key: string]: string } = {
+		'RELIANCE': '+59.80 (7.83%)',
+		'TCS': '-255.70 (5.46%)',
+		'HDFCBANK': '+6.80 (2.49%)',
+		'INFY': '+31.20 (7.24%)'
+	};
+
+	const getMostBoughtStocks = (): StockData[] => {
+		const symbols = ['RELIANCE', 'TCS', 'HDFCBANK', 'INFY'];
+		return symbols
+			.filter(symbol => prices[symbol])
+			.map(symbol => ({
+				symbol,
+				name: stockNames[symbol],
+				price: prices[symbol],
+				change: stockChanges[symbol]
+			}));
+	};
+
+	const getIndexPrices = () => {
+		return {
+			nifty50: prices['NIFTY50'] || '24,194.50',
+			bankNifty: prices['BANKNIFTY'] || '52,191.50'
+		};
+	};
+
+	const mostBoughtStocks = getMostBoughtStocks();
+	const indexPrices = getIndexPrices();
+
 	return (
-		<SafeAreaProvider 
-			style={{
-				flex: 1,
-				backgroundColor: "#FFFFFF",
-			}}>
-			<ScrollView  
+		<BottomNavBar onTabChange={(tab) => console.log('Tab changed to:', tab)}>
+			<SafeAreaView 
 				style={{
 					flex: 1,
 					backgroundColor: "#FFFFFF",
-					borderRadius: 30,
-					paddingTop: 50,
 				}}>
+				{loading && (
+					<View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+						<ActivityIndicator size="large" color="#059669" />
+					</View>
+				)}
+				{!loading && (
+				<ScrollView  
+					style={{
+						flex: 1,
+						backgroundColor: "#FFFFFF",
+					}}>
 				<View 
 					style={{
 						flexDirection: "row",
 						alignItems: "center",
 						marginBottom: 37,
 						marginHorizontal: 30,
+						marginTop: 20,
 					}}>
 					<Image
 						source = {{uri: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/w8lS8rAT8w/afd3chsl_expires_30_days.png"}} 
@@ -136,7 +238,7 @@ export default function StocksScreen({ onNavigateToProfile }: StocksScreenProps)
 									fontSize: 13,
 									marginRight: 9,
 								}}>
-								{"24,194.50"}
+								{`${indexPrices.nifty50}`}
 							</Text>
 							<Text 
 								style={{
@@ -177,7 +279,7 @@ export default function StocksScreen({ onNavigateToProfile }: StocksScreenProps)
 									fontSize: 13,
 									marginRight: 9,
 								}}>
-								{"52,191.50"}
+								{`${indexPrices.bankNifty}`}
 							</Text>
 							<Text 
 								style={{
@@ -298,7 +400,7 @@ export default function StocksScreen({ onNavigateToProfile }: StocksScreenProps)
 									marginRight: 20,
 								}}>
 								<Image
-									source = {{uri: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/w8lS8rAT8w/9mr0fv8v_expires_30_days.png"}} 
+									source = {require('../../../assets/relaince.png')} 
 									resizeMode = {"stretch"}
 									style={{
 										borderRadius: 10,
@@ -315,7 +417,7 @@ export default function StocksScreen({ onNavigateToProfile }: StocksScreenProps)
 										marginBottom: 13,
 										marginLeft: 15,
 									}}>
-									{"Triveni Turbine"}
+									{mostBoughtStocks[0]?.name}
 								</Text>
 								<Text 
 									style={{
@@ -324,7 +426,7 @@ export default function StocksScreen({ onNavigateToProfile }: StocksScreenProps)
 										marginBottom: 8,
 										marginLeft: 15,
 									}}>
-									{"₹823.96"}
+									{`₹${mostBoughtStocks[0]?.price}`}
 								</Text>
 								<Text 
 									style={{
@@ -333,7 +435,7 @@ export default function StocksScreen({ onNavigateToProfile }: StocksScreenProps)
 										fontWeight: "bold",
 										marginLeft: 15,
 									}}>
-									{"+59.80 (7.83%)"}
+									{mostBoughtStocks[0].change}
 								</Text>
 							</View>
 							<View 
@@ -345,7 +447,7 @@ export default function StocksScreen({ onNavigateToProfile }: StocksScreenProps)
 									paddingVertical: 26,
 								}}>
 								<Image
-									source = {{uri: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/w8lS8rAT8w/efz8yzn9_expires_30_days.png"}} 
+									source = {require('../../../assets/tcs.png')} 
 									resizeMode = {"stretch"}
 									style={{
 										borderRadius: 10,
@@ -362,7 +464,7 @@ export default function StocksScreen({ onNavigateToProfile }: StocksScreenProps)
 										marginBottom: 13,
 										marginLeft: 15,
 									}}>
-									{"BSE"}
+									{mostBoughtStocks[1]?.name}
 								</Text>
 								<Text 
 									style={{
@@ -371,7 +473,7 @@ export default function StocksScreen({ onNavigateToProfile }: StocksScreenProps)
 										marginBottom: 8,
 										marginLeft: 15,
 									}}>
-									{"₹4,431.10"}
+									{`₹${mostBoughtStocks[1]?.price}`}
 								</Text>
 								<Text 
 									style={{
@@ -380,7 +482,7 @@ export default function StocksScreen({ onNavigateToProfile }: StocksScreenProps)
 										fontWeight: "bold",
 										marginLeft: 12,
 									}}>
-									{"-255.70 (5.46%)"}
+									{mostBoughtStocks[1].change}
 								</Text>
 							</View>
 						</View>
@@ -399,7 +501,7 @@ export default function StocksScreen({ onNavigateToProfile }: StocksScreenProps)
 									marginRight: 20,
 								}}>
 								<Image
-									source = {{uri: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/w8lS8rAT8w/4x59bi07_expires_30_days.png"}} 
+									source = {require('../../../assets/hdfc.png')} 
 									resizeMode = {"stretch"}
 									style={{
 										borderRadius: 10,
@@ -416,7 +518,7 @@ export default function StocksScreen({ onNavigateToProfile }: StocksScreenProps)
 										marginBottom: 13,
 										marginLeft: 15,
 									}}>
-									{"Zomato"}
+									{mostBoughtStocks[2]?.name}
 								</Text>
 								<Text 
 									style={{
@@ -425,7 +527,7 @@ export default function StocksScreen({ onNavigateToProfile }: StocksScreenProps)
 										marginBottom: 8,
 										marginLeft: 15,
 									}}>
-									{"₹280.11"}
+									{`₹${mostBoughtStocks[2]?.price}`}
 								</Text>
 								<Text 
 									style={{
@@ -435,7 +537,7 @@ export default function StocksScreen({ onNavigateToProfile }: StocksScreenProps)
 										marginBottom: 27,
 										marginLeft: 18,
 									}}>
-									{"+6.80 (2.49%)"}
+									{mostBoughtStocks[2].change}
 								</Text>
 							</View>
 							<View 
@@ -447,7 +549,7 @@ export default function StocksScreen({ onNavigateToProfile }: StocksScreenProps)
 									paddingTop: 14,
 								}}>
 								<Image
-									source = {{uri: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/w8lS8rAT8w/dvkroero_expires_30_days.png"}} 
+									source = {require('../../../assets/infosys.png')} 
 									resizeMode = {"stretch"}
 									style={{
 										borderRadius: 10,
@@ -464,7 +566,7 @@ export default function StocksScreen({ onNavigateToProfile }: StocksScreenProps)
 										marginBottom: 13,
 										marginLeft: 15,
 									}}>
-									{"Swiggy"}
+									{mostBoughtStocks[3]?.name}
 								</Text>
 								<Text 
 									style={{
@@ -473,7 +575,7 @@ export default function StocksScreen({ onNavigateToProfile }: StocksScreenProps)
 										marginBottom: 8,
 										marginLeft: 15,
 									}}>
-									{"₹461.90"}
+									{`₹${mostBoughtStocks[3]?.price}`}
 								</Text>
 								<Text 
 									style={{
@@ -483,7 +585,7 @@ export default function StocksScreen({ onNavigateToProfile }: StocksScreenProps)
 										marginBottom: 27,
 										marginLeft: 15,
 									}}>
-									{"+31.20 (7.24%)"}
+									{mostBoughtStocks[3].change}
 								</Text>
 							</View>
 						</View>
@@ -642,6 +744,8 @@ export default function StocksScreen({ onNavigateToProfile }: StocksScreenProps)
 					/>
 				</View>
 			</ScrollView>
-		</SafeAreaProvider>
+			)}
+		</SafeAreaView>
+		</BottomNavBar>
 	);
 }

@@ -24,13 +24,13 @@ exports.streamPrices = async (req, res) => {
     console.log(`[SSE] Client connected. Total clients: ${clients.length}`);
 
     // Send an initial connection success event
-    res.write('event: connected\\ndata: {"message": "Streaming connected"}\\n\\n');
+    res.write('event: connected\ndata: {"message": "Streaming connected"}\n\n');
 
     // Immediately send the latest cached prices if they exist
     try {
         const cachedPrices = await redis.hgetall('live_prices');
         if (Object.keys(cachedPrices).length > 0) {
-            res.write(`data: ${JSON.stringify(cachedPrices)}\\n\\n`);
+            res.write(`data: ${JSON.stringify(cachedPrices)}\n\n`);
         }
     } catch (error) {
         console.error('Error fetching initial cached prices:', error.message);
@@ -46,7 +46,7 @@ exports.streamPrices = async (req, res) => {
 // Internal function called by the Broadcaster loop to push new prices to all clients
 exports.broadcastToClients = (newPrices) => {
     if (clients.length === 0) return;
-    const dataString = `data: ${JSON.stringify(newPrices)}\\n\\n`;
+    const dataString = `data: ${JSON.stringify(newPrices)}\n\n`;
     clients.forEach(client => {
         client.write(dataString);
     });

@@ -20,6 +20,11 @@ app.use(express.urlencoded({ extended: true }));
 // Apply rate limiter to all api routes
 app.use('/api', apiLimiter);
 
+// Root endpoint
+app.get('/', (req, res) => {
+    res.json({ message: 'server is running' });
+});
+
 // Register routes
 app.use('/api', healthRoutes);
 app.use('/api/auth', authRoutes);
