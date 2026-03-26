@@ -1,5 +1,5 @@
 const Redis = require('ioredis');
-const stockService = require('./stock.service');
+const { createConsumer } = require('../config/kafkaClient');
 const { broadcastToClients } = require('../controllers/price.controller');
 
 const redis = new Redis({
@@ -8,52 +8,46 @@ const redis = new Redis({
     maxRetriesPerRequest: null
 });
 
-// The list of symbols we want to actively stream to clients
-const TRACKED_SYMBOLS = ['RELIANCE', 'TCS', 'HDFCBANK', 'INFY'];
+const consumer = createConsumer('price-broadcaster-group');
 
-let intervalId = null;
+const startBroadcasting = async () => {
+    try {
+        await consumer.connect();
+        await consumer.subscribe({ topic: 'market-prices', fromBeginning: false });
 
-const startBroadcasting = () => {
-    if (intervalId) return; // already running
+        console.log('[Price Broadcaster] Connected to Kafka. Listening for live prices...');
 
-    console.log('[Price Broadcaster] Starting live market data feed (sequential)...');
-
-    // Poll every 10 seconds to accommodate 1 req/sec limit
-    intervalId = setInterval(async () => {
-        try {
-            const newPrices = {};
-
-            // Changed to sequential to respect the 1 req/sec API limit of Indian Stock API
-            for (const symbol of TRACKED_SYMBOLS) {
+        await consumer.run({
+            eachMessage: async ({ topic, partition, message }) => {
                 try {
-                    const price = await stockService.getLatestPrice(symbol);
-                    newPrices[symbol] = price;
+                    const data = JSON.parse(message.value.toString());
+                    const symbol = data.symbol;
+                    // The old service returned a single price (usually NSE). We will stick to that structure.
+                    const livePrice = data.price.NSE; 
+                    
+                    const newPrices = { [symbol]: livePrice };
 
-                    // Wait 1.2 seconds between requests to avoid rate limits
-                    await new Promise(resolve => setTimeout(resolve, 1200));
+                    // Cache the newest prices into Redis using a Hash
+                    await redis.hmset('live_prices', newPrices);
+
+                    // Push the update to all connected SSE clients instantly
+                    broadcastToClients(newPrices);
                 } catch (err) {
-                    console.error(`[Price Broadcaster] Failed to fetch ${symbol}:`, err.message);
+                    console.error('[Price Broadcaster] Message Processing Error:', err.message);
                 }
-            }
-
-            if (Object.keys(newPrices).length > 0) {
-                // Cache the newest prices into Redis using a Hash
-                await redis.hmset('live_prices', newPrices);
-
-                // Push the update to all connected SSE clients instantly
-                broadcastToClients(newPrices);
-            }
-        } catch (error) {
-            console.error('[Price Broadcaster] Loop Error:', error.message);
-        }
-    }, 10000);
+            },
+        });
+    } catch (err) {
+        console.error('[Price Broadcaster] Consumer initialization error:', err);
+    }
 };
 
-const stopBroadcasting = () => {
-    if (intervalId) {
-        clearInterval(intervalId);
-        intervalId = null;
+const stopBroadcasting = async () => {
+    try {
+        await consumer.disconnect();
         console.log('[Price Broadcaster] Stopped live market data feed.');
+    } catch (err) {
+        console.error('[Price Broadcaster] Disconnect error:', err);
     }
 };
 

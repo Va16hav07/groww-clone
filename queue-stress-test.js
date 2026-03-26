@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 async function run() {
-    console.log('Initiating 50 rapid-fire Orders to test BullMQ / Redis resilience...');
+    console.log('Initiating 50 rapid-fire Orders to test Kafka / Event Queuing resilience...');
 
     try {
         const loginRes = await axios.post('http://localhost:8000/api/auth/login', {
@@ -10,7 +10,6 @@ async function run() {
         });
         const token = loginRes.data.token;
 
-        // We only send 50 because Rate Limiter kicks in at 100 reqs/15min, and we used some!
         const NUM_ORDERS = 50;
         const promises = [];
 
@@ -24,9 +23,9 @@ async function run() {
 
         const results = await Promise.allSettled(promises);
         const successful = results.filter(r => r.status === 'fulfilled').length;
-        console.log(`Successfully lodged ${successful}/${NUM_ORDERS} PENDING orders instantly into the queue.`);
+        console.log(`Successfully lodged ${successful}/${NUM_ORDERS} PENDING orders instantly into the Kafka topic.`);
 
-        console.log('Waiting 10 seconds for the BullMQ Worker to process the backlog sequentially...');
+        console.log('Waiting 10 seconds for the Kafka Consumer/Exchange Gateway to process the backlog sequentially...');
         await new Promise(r => setTimeout(r, 10000));
 
         const getRes = await axios.get('http://localhost:8000/api/orders', {

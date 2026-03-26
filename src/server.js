@@ -3,32 +3,24 @@ const http = require('http');
 const app = require('./app');
 const db = require('./config/db');
 const { startBroadcasting, stopBroadcasting } = require('./services/priceBroadcaster');
-require('./queue/exchangeWorker'); // Initialize consumer worker
+const { startWorker } = require('./queue/exchangeWorker');
+const { connectProducer, ensureTopicsExist } = require('./config/kafkaClient');
 
 const PORT = process.env.PORT || 5000;
 const server = http.createServer(app);
 
 console.log('Server is running');
 
-server.listen(PORT, () => {
+server.listen(PORT, async () => {
     console.log(`Server is running on port ${PORT}`);
     console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+    
+    // Ensure Topics Exist
+    await ensureTopicsExist(['orders', 'market-prices']);
 
-    // Start background live market feed
+    // Connect Kafka Producer and start Kafka Consumer
+    await connectProducer();
+    await startWorker();
+
     startBroadcasting();
-});
-
-// Graceful shutdown handling
-process.on('SIGTERM', () => {
-    console.info('SIGTERM signal received.');
-    server.close(() => {
-        console.log('Http server closed.');
-        // Stop background loops
-        stopBroadcasting();
-        // close database connection
-        db.end(() => {
-            console.log('PostgreSQL database connection closed.');
-            process.exit(0);
-        });
-    });
 });

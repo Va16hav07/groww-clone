@@ -1,6 +1,6 @@
 const Order = require('../models/order.model');
 const stockService = require('../services/stock.service');
-const orderQueue = require('../queue/orderQueue');
+const { producer } = require('../config/kafkaClient');
 const Redis = require('ioredis');
 
 const redis = new Redis({
@@ -12,7 +12,7 @@ const redis = new Redis({
 exports.placeOrder = async (req, res) => {
     try {
         const { symbol, type, quantity } = req.body;
-        const userId = req.userId; // From auth.middleware
+        const userId = req.userId; 
 
         if (!symbol || !type || !quantity) {
             return res.status(400).json({ error: 'Symbol, type, and quantity are required' });
@@ -30,7 +30,6 @@ exports.placeOrder = async (req, res) => {
         let livePrice = await redis.hget('live_prices', symbol.toUpperCase());
 
         if (!livePrice) {
-            // Fallback to strict API if not in cache (highly discouraged for high traffic)
             console.warn(`[OMS] Cache miss for ${symbol}. Fetching live...`);
             livePrice = await stockService.getLatestPrice(symbol);
         } else {
@@ -47,11 +46,16 @@ exports.placeOrder = async (req, res) => {
             'PENDING' // Orders start as PENDING
         );
 
-        // Add the order to the BullMQ processing queue
-        await orderQueue.add('process-order', { orderId: order.id });
+        // Add the order to the Kafka processing queue (orders topic)
+        await producer.send({
+            topic: 'orders',
+            messages: [
+                { value: JSON.stringify({ orderId: order.id, symbol, type, quantity, userId }) }
+            ]
+        });
 
         res.status(201).json({
-            message: 'Order placed successfully and queued for execution',
+            message: 'Order placed successfully and queued for execution via Kafka',
             order
         });
     } catch (error) {

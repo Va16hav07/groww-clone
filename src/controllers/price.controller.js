@@ -16,7 +16,7 @@ exports.streamPrices = async (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
-    res.flushHeaders(); // Establish connection immediately
+    res.flushHeaders(); 
 
     // Add this client to the registry
     clients.push(res);
