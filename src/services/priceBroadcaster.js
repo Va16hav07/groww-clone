@@ -22,7 +22,6 @@ const startBroadcasting = async () => {
                 try {
                     const data = JSON.parse(message.value.toString());
                     const symbol = data.symbol;
-                    // The old service returned a single price (usually NSE). We will stick to that structure.
                     const livePrice = data.price.NSE; 
                     
                     const newPrices = { [symbol]: livePrice };
