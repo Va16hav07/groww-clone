@@ -26,6 +26,15 @@ exports.placeOrder = async (req, res) => {
             return res.status(400).json({ error: 'Quantity must be greater than 0' });
         }
 
+        if (type.toUpperCase() === 'SELL') {
+            const availableQuantity = await Order.getAvailableQuantity(userId, symbol.toUpperCase());
+            if (availableQuantity < quantity) {
+                return res.status(400).json({ 
+                    error: `Insufficient holdings. You only have ${availableQuantity} available shares of ${symbol.toUpperCase()}.` 
+                });
+            }
+        }
+
         // Fetch market price from Redis Cache to avoid hitting 1 req/s Indian Stock API limit
         let livePrice = await redis.hget('live_prices', symbol.toUpperCase());
 

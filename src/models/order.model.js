@@ -28,6 +28,22 @@ class Order {
         const { rows } = await pool.query(query, [status, orderId]);
         return rows[0];
     }
+
+    static async getAvailableQuantity(userId, symbol) {
+        const query = `
+            SELECT SUM(
+                CASE 
+                    WHEN type = 'BUY' AND status = 'EXECUTED' THEN quantity 
+                    WHEN type = 'SELL' AND status IN ('EXECUTED', 'PENDING') THEN -quantity 
+                    ELSE 0 
+                END
+            ) as available_quantity
+            FROM orders 
+            WHERE user_id = $1 AND symbol = $2
+        `;
+        const { rows } = await pool.query(query, [userId, symbol]);
+        return parseInt(rows[0].available_quantity) || 0;
+    }
 }
 
 module.exports = Order;

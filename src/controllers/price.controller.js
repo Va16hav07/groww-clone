@@ -1,6 +1,6 @@
 const Redis = require('ioredis');
 
-// Setup Redis to fetch the latest cached prices
+// Redis to fetch the latest cached prices
 const redis = new Redis({
     host: process.env.REDIS_HOST || '127.0.0.1',
     port: process.env.REDIS_PORT || 6379,
@@ -12,19 +12,15 @@ let clients = [];
 
 // SSE Endpoint
 exports.streamPrices = async (req, res) => {
-    // Set headers for Server-Sent Events
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
     res.flushHeaders(); 
 
-    // Add this client to the registry
     clients.push(res);
 
     console.log(`[SSE] Client connected. Total clients: ${clients.length}`);
-
-    // Send an initial connection success event
-    res.write('event: connected\ndata: {"message": "Streaming connected"}\n\n');
+    res.write('{"message": "Streaming connected"}');
 
     // Immediately send the latest cached prices if they exist
     try {

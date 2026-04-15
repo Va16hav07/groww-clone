@@ -9,6 +9,7 @@ const priceRoutes = require('./routes/price.routes');
 
 // Import middlewares
 const { apiLimiter } = require('./middleware/rateLimit.middleware');
+const portfolioRoutes = require('./routes/portfolio.routes');
 
 const app = express();
 
@@ -30,6 +31,7 @@ app.use('/api', healthRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/prices', priceRoutes);
+app.use('/api/portfolio', portfolioRoutes);
 
 // Catch-all specific to 404
 app.use((req, res) => {

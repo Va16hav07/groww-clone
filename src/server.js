@@ -16,7 +16,7 @@ server.listen(PORT, async () => {
     console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
     
     // Ensure Topics Exist
-    await ensureTopicsExist(['orders', 'market-prices']);
+    await ensureTopicsExist(['orders', 'market-prices', 'failed-orders']);
 
     // Connect Kafka Producer and start Kafka Consumer
     await connectProducer();

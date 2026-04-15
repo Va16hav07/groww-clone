@@ -27,7 +27,17 @@ const startWorker = async () => {
                 } catch (err) {
                     console.error(`[Exchange Gateway] Failed to execute order ${orderId || 'unknown'}:`, err);
                     if (orderId) {
-                        Order.updateStatus(orderId, 'FAILED').catch(console.error);
+                        try {
+                            await Order.updateStatus(orderId, 'FAILED');
+                            const { producer } = require('../config/kafkaClient');
+                            await producer.send({
+                                topic: 'failed-orders',
+                                messages: [{ value: JSON.stringify({ orderId, error: err.message || 'Execution Failed' }) }]
+                            });
+                            console.log(`[DLQ] Order ${orderId} routed to Dead-Letter Queue.`);
+                        } catch (fatalErr) {
+                            console.error('[DLQ] Fatal failure:', fatalErr);
+                        }
                     }
                 }
             },
