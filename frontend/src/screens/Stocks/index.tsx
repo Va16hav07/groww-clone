@@ -10,7 +10,8 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AuthContext } from "../../context/AuthContext";
-import EventSource from "react-native-sse";
+import { PriceContext } from "../../context/PriceContext";
+
 import BottomNavBar from "../../components/BottomNavBar";
 
 interface StocksScreenProps {
@@ -24,10 +25,6 @@ interface User {
 
 interface AuthContextType {
   user: User | null;
-}
-
-interface PriceData {
-  [key: string]: string | number;
 }
 
 interface StockData {
@@ -44,45 +41,10 @@ export default function StocksScreen({
   const [textInput1, onChangeTextInput1] = useState<string>("");
   const { user } = useContext(AuthContext) as AuthContextType;
   const userInitial = user?.name?.charAt(0)?.toUpperCase() || "U";
-  const [prices, setPrices] = useState<PriceData>({});
-  const [loading, setLoading] = useState<boolean>(true);
-
-  useEffect(() => {
-    let eventSource: InstanceType<typeof EventSource> | null = null;
-
-    const connectToStream = () => {
-      try {
-        const apiUrl =
-          process.env.EXPO_PUBLIC_API_URL || "http://localhost:8000/api";
-        eventSource = new EventSource(`${apiUrl}/prices/stream`);
-
-        eventSource.addEventListener("message", (event) => {
-          try {
-            if (event.data) {
-              const data = JSON.parse(event.data);
-              setPrices((prevPrices) => ({ ...prevPrices, ...data }));
-              setLoading(false);
-            }
-          } catch (error) {
-            console.error("Error parsing price data:", error);
-          }
-        });
-
-        eventSource.addEventListener("error", (error) => {
-          eventSource?.close();
-          setTimeout(connectToStream, 3000);
-        });
-      } catch (error) {
-        setLoading(false);
-      }
-    };
-
-    connectToStream();
-
-    return () => {
-      eventSource?.close();
-    };
-  }, []);
+  const priceContext = useContext(PriceContext);
+  
+  const prices = priceContext?.prices || {};
+  const loading = priceContext?.loading ?? true;
 
   const stockNames: { [key: string]: string } = {
     RELIANCE: "Reliance",

@@ -10,6 +10,7 @@ import OrderHistoryScreen from './src/screens/OrderHistoryScreen';
 import OrderEntryScreen from './src/screens/OrderEntryScreen';
 import { AuthProvider, AuthContext } from './src/context/AuthContext';
 import { View, ActivityIndicator } from 'react-native';
+import { PriceProvider } from './src/context/PriceContext';
 
 type ScreenName = 'login' | 'signup' | 'stocks' | 'profile' | 'details' | 'orders' | 'orderEntry';
 
@@ -63,7 +64,9 @@ function RootNavigator(): React.ReactElement {
 export default function App(): React.ReactElement {
   return (
     <AuthProvider>
-      <RootNavigator />
+      <PriceProvider>
+        <RootNavigator />
+      </PriceProvider>
     </AuthProvider>
   );
 }
