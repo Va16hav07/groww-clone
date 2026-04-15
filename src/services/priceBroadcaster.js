@@ -15,8 +15,6 @@ const startBroadcasting = async () => {
         await consumer.connect();
         await consumer.subscribe({ topic: 'market-prices', fromBeginning: false });
 
-        console.log('[Price Broadcaster] Connected to Kafka. Listening for live prices...');
-
         await consumer.run({
             eachMessage: async ({ topic, partition, message }) => {
                 try {
@@ -44,7 +42,6 @@ const startBroadcasting = async () => {
 const stopBroadcasting = async () => {
     try {
         await consumer.disconnect();
-        console.log('[Price Broadcaster] Stopped live market data feed.');
     } catch (err) {
         console.error('[Price Broadcaster] Disconnect error:', err);
     }

@@ -1,8 +1,18 @@
-import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, KeyboardAvoidingView, Platform, Image, ActivityIndicator } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-import { Ionicons } from '@expo/vector-icons';
-import { AuthContext } from '../context/AuthContext';
+import React, { useState, useContext } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  SafeAreaView,
+  KeyboardAvoidingView,
+  Platform,
+  Image,
+  ActivityIndicator,
+} from "react-native";
+import { StatusBar } from "expo-status-bar";
+import { Ionicons } from "@expo/vector-icons";
+import { AuthContext } from "../context/AuthContext";
 
 interface LoginScreenProps {
   onNavigateToSignup: () => void;
@@ -17,24 +27,26 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<LoginResult>;
 }
 
-export default function LoginScreen({ onNavigateToSignup }: LoginScreenProps): React.ReactElement {
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
+export default function LoginScreen({
+  onNavigateToSignup,
+}: LoginScreenProps): React.ReactElement {
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [errorText, setErrorText] = useState<string>('');
-  
+  const [errorText, setErrorText] = useState<string>("");
+
   const { login } = useContext(AuthContext) as AuthContextType;
 
   const handleLogin = async (): Promise<void> => {
     if (!email || !password) {
-      setErrorText('Please fill in all fields');
+      setErrorText("Please fill in all fields");
       return;
     }
-    setErrorText('');
+    setErrorText("");
     setIsSubmitting(true);
     const result = await login(email, password);
     if (!result.success) {
-      setErrorText(result.error || 'Login failed');
+      setErrorText(result.error || "Login failed");
     }
     setIsSubmitting(false);
   };
@@ -42,18 +54,23 @@ export default function LoginScreen({ onNavigateToSignup }: LoginScreenProps): R
   return (
     <SafeAreaView className="flex-1 bg-white">
       <StatusBar style="dark" />
-      <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         className="flex-1"
       >
         <View className="flex-1 px-6 pt-16 pb-8 justify-center">
-          
           {/* Logo & Header */}
           <View className="items-center mb-10 mt-10">
             <View className="w-24 h-24 mb-6">
-              <Image source={require('../../assets/logo.png')} className="w-full h-full" resizeMode="contain" />
+              <Image
+                source={require("../../assets/logo.png")}
+                className="w-full h-full"
+                resizeMode="contain"
+              />
             </View>
-            <Text className="text-3xl font-extrabold text-gray-900 mb-2">Welcome to Groww</Text>
+            <Text className="text-3xl font-extrabold text-gray-900 mb-2">
+              Welcome to Groww
+            </Text>
             <Text className="text-gray-500 text-base text-center px-4">
               Invest in Stocks, Mutual Funds, and more.
             </Text>
@@ -61,9 +78,16 @@ export default function LoginScreen({ onNavigateToSignup }: LoginScreenProps): R
 
           {/* Form */}
           <View className="mb-4 w-full">
-            <Text className="text-gray-700 font-semibold mb-2 ml-1">Email Address</Text>
+            <Text className="text-gray-700 font-semibold mb-2 ml-1">
+              Email Address
+            </Text>
             <View className="flex-row items-center border border-gray-300 rounded-xl px-4 h-14 bg-gray-50">
-              <Ionicons name="mail-outline" size={20} color="#9ca3af" className="mr-3" />
+              <Ionicons
+                name="mail-outline"
+                size={20}
+                color="#9ca3af"
+                className="mr-3"
+              />
               <TextInput
                 className="flex-1 h-full text-gray-900 text-base ml-2"
                 placeholder="name@example.com"
@@ -77,9 +101,16 @@ export default function LoginScreen({ onNavigateToSignup }: LoginScreenProps): R
           </View>
 
           <View className="mb-6 w-full">
-            <Text className="text-gray-700 font-semibold mb-2 ml-1">Password</Text>
+            <Text className="text-gray-700 font-semibold mb-2 ml-1">
+              Password
+            </Text>
             <View className="flex-row items-center border border-gray-300 rounded-xl px-4 h-14 bg-gray-50">
-              <Ionicons name="lock-closed-outline" size={20} color="#9ca3af" className="mr-3" />
+              <Ionicons
+                name="lock-closed-outline"
+                size={20}
+                color="#9ca3af"
+                className="mr-3"
+              />
               <TextInput
                 className="flex-1 h-full text-gray-900 text-base ml-2"
                 placeholder="Enter password"
@@ -93,11 +124,13 @@ export default function LoginScreen({ onNavigateToSignup }: LoginScreenProps): R
 
           {/* Error Message */}
           {errorText ? (
-            <Text className="text-red-500 font-medium mb-4 ml-1 px-1">{errorText}</Text>
+            <Text className="text-red-500 font-medium mb-4 ml-1 px-1">
+              {errorText}
+            </Text>
           ) : null}
 
           {/* Action Button */}
-          <TouchableOpacity 
+          <TouchableOpacity
             className="bg-emerald-600 h-14 rounded-xl flex-row items-center justify-center shadow-md w-full"
             activeOpacity={0.8}
             onPress={handleLogin}
@@ -118,12 +151,14 @@ export default function LoginScreen({ onNavigateToSignup }: LoginScreenProps): R
           </View>
 
           {/* Alternate Login */}
-          <TouchableOpacity 
+          <TouchableOpacity
             className="flex-row items-center justify-center border border-gray-300 h-14 w-full rounded-xl bg-white"
             activeOpacity={0.7}
           >
             <Ionicons name="logo-google" size={20} color="#ea4335" />
-            <Text className="text-gray-700 font-semibold text-base ml-3">Continue with Google</Text>
+            <Text className="text-gray-700 font-semibold text-base ml-3">
+              Continue with Google
+            </Text>
           </TouchableOpacity>
 
           {/* Footer */}
@@ -135,10 +170,14 @@ export default function LoginScreen({ onNavigateToSignup }: LoginScreenProps): R
               </TouchableOpacity>
             </View>
             <Text className="text-center text-gray-500 text-sm">
-              By continuing, you accept our <Text className="text-emerald-600 font-medium">Terms</Text> and <Text className="text-emerald-600 font-medium">Privacy Policy</Text>.
+              By continuing, you accept our{" "}
+              <Text className="text-emerald-600 font-medium">Terms</Text> and{" "}
+              <Text className="text-emerald-600 font-medium">
+                Privacy Policy
+              </Text>
+              .
             </Text>
           </View>
-
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>

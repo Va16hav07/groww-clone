@@ -71,11 +71,7 @@ export default function BottomNavBar({
 
   const renderContent = () => {
     if (activeTab === "Stocks") {
-      return (
-        <View style={styles.contentContainer}>
-          {children}
-        </View>
-      );
+      return <View style={styles.contentContainer}>{children}</View>;
     }
 
     return (
@@ -87,9 +83,7 @@ export default function BottomNavBar({
 
   return (
     <View style={styles.mainContainer}>
-      <View style={styles.contentWrapper}>
-        {renderContent()}
-      </View>
+      <View style={styles.contentWrapper}>{renderContent()}</View>
 
       <View style={styles.container}>
         {tabs.map((tab) => {
