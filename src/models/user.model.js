@@ -19,8 +19,19 @@ class User {
     }
 
     static async findById(id) {
-        const query = 'SELECT id, name, email, created_at, updated_at FROM users WHERE id = $1;';
+        const query = 'SELECT id, name, email, balance, created_at, updated_at FROM users WHERE id = $1;';
         const { rows } = await pool.query(query, [id]);
+        return rows[0];
+    }
+
+    static async updateBalance(id, amountChange) {
+        const query = `
+          UPDATE users 
+          SET balance = balance + $1, updated_at = CURRENT_TIMESTAMP
+          WHERE id = $2
+          RETURNING id, balance;
+        `;
+        const { rows } = await pool.query(query, [amountChange, id]);
         return rows[0];
     }
 }

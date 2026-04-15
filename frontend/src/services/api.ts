@@ -42,3 +42,10 @@ export const createOrder = async (symbol: string, type: string, quantity: number
     body: JSON.stringify({ symbol, type, quantity, price })
   });
 };
+
+export const addMoney = async (amount: number) => {
+  return await fetchWithAuth('/portfolio/add-money', {
+    method: 'POST',
+    body: JSON.stringify({ amount })
+  });
+};

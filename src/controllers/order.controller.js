@@ -1,4 +1,5 @@
 const Order = require('../models/order.model');
+const User = require('../models/user.model');
 const stockService = require('../services/stock.service');
 const { producer } = require('../config/kafkaClient');
 const Redis = require('ioredis');
@@ -45,6 +46,16 @@ exports.placeOrder = async (req, res) => {
             livePrice = parseFloat(livePrice);
         }
 
+        if (type.toUpperCase() === 'BUY') {
+            const user = await User.findById(userId);
+            const totalCost = quantity * livePrice;
+            if (parseFloat(user.balance) < totalCost) {
+                return res.status(400).json({ 
+                    error: `Insufficient balance. You need ₹${totalCost.toFixed(2)} to buy these shares. Current balance: ₹${user.balance}.` 
+                });
+            }
+        }
+
         // Create the order in the database
         const order = await Order.create(
             userId,
@@ -59,7 +70,7 @@ exports.placeOrder = async (req, res) => {
         await producer.send({
             topic: 'orders',
             messages: [
-                { value: JSON.stringify({ orderId: order.id, symbol, type, quantity, userId }) }
+                { value: JSON.stringify({ orderId: order.id, symbol, type: type.toUpperCase(), quantity, userId, price: livePrice }) }
             ]
         });
 

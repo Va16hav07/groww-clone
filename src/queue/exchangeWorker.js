@@ -1,5 +1,6 @@
 const { createConsumer } = require('../config/kafkaClient');
 const Order = require('../models/order.model');
+const User = require('../models/user.model');
 
 const consumer = createConsumer('exchange-group');
 
@@ -23,7 +24,11 @@ const startWorker = async () => {
 
                     // Update Postgres Database
                     await Order.updateStatus(orderId, 'EXECUTED');
-                    console.log(`[Exchange Gateway] Order ${orderId} executed!`);
+                    
+                    const amountChange = jobData.type === 'BUY' ? -(jobData.price * jobData.quantity) : (jobData.price * jobData.quantity);
+                    await User.updateBalance(jobData.userId, amountChange);
+                    
+                    console.log(`[Exchange Gateway] Order ${orderId} executed! Balance mutated by ${amountChange}`);
                 } catch (err) {
                     console.error(`[Exchange Gateway] Failed to execute order ${orderId || 'unknown'}:`, err);
                     if (orderId) {

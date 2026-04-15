@@ -1,6 +1,6 @@
 import React, { useContext, useEffect, useState } from "react";
-import { fetchPortfolio } from "../../services/api";
-import { View, ScrollView, Image, Text, TouchableOpacity } from "react-native";
+import { fetchPortfolio, addMoney } from "../../services/api";
+import { View, ScrollView, Image, Text, TouchableOpacity, Modal, TextInput, ActivityIndicator, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AuthContext } from "../../context/AuthContext";
 
@@ -26,23 +26,42 @@ export default function ProfileScreen({
   const { user, logout } = useContext(AuthContext) as AuthContextType;
   const userInitial = user?.name?.charAt(0)?.toUpperCase() || "U";
   const [balance, setBalance] = useState("$0.00");
+  const [addMoneyVisible, setAddMoneyVisible] = useState(false);
+  const [amountToAdd, setAmountToAdd] = useState("");
+  const [addingMoney, setAddingMoney] = useState(false);
 
   useEffect(() => {
     fetchPortfolio()
       .then((res) => {
-        if (res.portfolio) {
-          const eq = res.portfolio
-            .reduce(
-              (acc: number, curr: any) =>
-                acc + parseInt(curr.total_quantity) * 100,
-              0,
-            )
-            .toFixed(2);
-          setBalance(`$${eq}`);
+        if (res.balance !== undefined) {
+          setBalance(`$${parseFloat(res.balance).toFixed(2)}`);
         }
       })
       .catch(console.error);
   }, []);
+
+  const handleAddMoney = async () => {
+    const amt = parseFloat(amountToAdd);
+    if (isNaN(amt) || amt <= 0) {
+      Alert.alert("Invalid Input", "Please enter a valid amount.");
+      return;
+    }
+    setAddingMoney(true);
+    try {
+      const res = await addMoney(amt);
+      if (res.success) {
+        setBalance(`$${parseFloat(res.balance).toFixed(2)}`);
+        setAddMoneyVisible(false);
+        setAmountToAdd("");
+        Alert.alert("Success", "Funds added successfully!");
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Error", "Could not add money at this time.");
+    } finally {
+      setAddingMoney(false);
+    }
+  };
 
   const handleLogout = async () => {
     await logout();
@@ -219,7 +238,7 @@ export default function ProfileScreen({
                       fontSize: 14,
                     }}
                   >
-                    {"Stocks, F&O balance"}
+                    {"Available to invest"}
                   </Text>
                 </View>
               </View>
@@ -232,7 +251,7 @@ export default function ProfileScreen({
                   paddingVertical: 9,
                   paddingHorizontal: 11,
                 }}
-                onPress={() => alert("Pressed!")}
+                onPress={() => setAddMoneyVisible(true)}
               >
                 <Image
                   source={{
@@ -354,6 +373,30 @@ export default function ProfileScreen({
           </TouchableOpacity>
         </View>
       </ScrollView>
+
+      <Modal visible={addMoneyVisible} transparent animationType="slide">
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{ backgroundColor: '#fff', width: '80%', padding: 20, borderRadius: 10 }}>
+            <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 15 }}>Add Funds</Text>
+            <TextInput 
+              style={{ borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 10, fontSize: 16, marginBottom: 15 }}
+              keyboardType="numeric"
+              placeholder="Enter amount (e.g. 1000)"
+              value={amountToAdd}
+              onChangeText={setAmountToAdd}
+            />
+            <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
+              <TouchableOpacity onPress={() => setAddMoneyVisible(false)} style={{ padding: 10, marginRight: 10 }}>
+                <Text style={{ color: '#757575', fontWeight: 'bold' }}>CANCEL</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleAddMoney} style={{ padding: 10, backgroundColor: '#059669', borderRadius: 8 }}>
+                {addingMoney ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: 'bold' }}>ADD</Text>}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
     </SafeAreaView>
   );
 }
