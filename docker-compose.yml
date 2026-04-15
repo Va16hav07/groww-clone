@@ -24,5 +24,18 @@ services:
     volumes:
       - kafka_data:/var/lib/kafka/data
 
+  postgres:
+    image: postgres:15-alpine
+    container_name: groww-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: groww_clone
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+
 volumes:
   kafka_data:
+  pg_data:
