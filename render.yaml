@@ -1,0 +1,49 @@
+services:
+  - type: web
+    name: groww-api-gateway
+    env: node
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: USER_SERVICE_URL
+        value: https://groww-user-service.onrender.com
+      - key: ORDER_SERVICE_URL
+        value: https://groww-order-service.onrender.com
+      - key: PRICE_SERVICE_URL
+        value: https://groww-price-service.onrender.com
+    rootDir: services/api-gateway
+    
+  - type: web
+    name: groww-user-service
+    env: node
+    buildCommand: npm install
+    startCommand: node index.js
+    rootDir: services/user-service
+
+  - type: web
+    name: groww-order-service
+    env: node
+    buildCommand: npm install
+    startCommand: node index.js
+    rootDir: services/order-service
+
+  - type: web
+    name: groww-price-service
+    env: node
+    buildCommand: npm install
+    startCommand: node index.js
+    rootDir: services/price-service
+
+  - type: worker
+    name: groww-exchange-service
+    env: node
+    buildCommand: npm install
+    startCommand: node index.js
+    rootDir: services/exchange-service
+
+  - type: worker
+    name: groww-dummy-gateway
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    rootDir: gateway

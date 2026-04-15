@@ -6,7 +6,7 @@ const priceRoutes = require('./routes/price.routes');
 const { startBroadcasting } = require('./services/priceBroadcaster');
 
 const app = express();
-const PORT = 5003;
+const PORT = process.env.PORT || 5003;
 
 // Middleware
 app.use(cors());

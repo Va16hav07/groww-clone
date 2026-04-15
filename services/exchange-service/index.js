@@ -4,7 +4,7 @@ require('dotenv').config({ path: require('path').resolve(__dirname, '../../.env'
 const { startWorker } = require('./queue/exchangeWorker');
 
 const app = express();
-const PORT = 5004;
+const PORT = process.env.PORT || 5004;
 
 app.use(morgan('dev'));
 

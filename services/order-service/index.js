@@ -7,7 +7,7 @@ const portfolioRoutes = require('./routes/portfolio.routes');
 const { connectProducer, ensureTopicsExist } = require('./config/kafkaClient');
 
 const app = express();
-const PORT = 5002;
+const PORT = process.env.PORT || 5002;
 
 // Middleware
 app.use(cors());
