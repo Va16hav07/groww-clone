@@ -10,7 +10,6 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AuthContext } from "../../context/AuthContext";
-import { fetchWithAuth } from "../../services/api";
 import EventSource from "react-native-sse";
 import BottomNavBar from "../../components/BottomNavBar";
 
@@ -55,16 +54,13 @@ export default function StocksScreen({
       try {
         const apiUrl =
           process.env.EXPO_PUBLIC_API_URL || "http://localhost:8000/api";
-        console.log(`Connecting to: ${apiUrl}/prices/stream`);
         eventSource = new EventSource(`${apiUrl}/prices/stream`);
 
         eventSource.addEventListener("message", (event) => {
           try {
-            console.log("Received event:", event.data);
             if (event.data) {
               const data = JSON.parse(event.data);
-              console.log("Parsed prices:", data);
-              setPrices(data);
+              setPrices((prevPrices) => ({ ...prevPrices, ...data }));
               setLoading(false);
             }
           } catch (error) {
@@ -73,13 +69,10 @@ export default function StocksScreen({
         });
 
         eventSource.addEventListener("error", (error) => {
-          console.error("EventSource error:", error);
           eventSource?.close();
-          // Reconnect after 3 seconds
           setTimeout(connectToStream, 3000);
         });
       } catch (error) {
-        console.error("Error connecting to price stream:", error);
         setLoading(false);
       }
     };
@@ -129,26 +122,14 @@ export default function StocksScreen({
 
   return (
     <BottomNavBar onTabChange={(tab) => console.log("Tab changed to:", tab)}>
-      <SafeAreaView
-        style={{
-          flex: 1,
-          backgroundColor: "#FFFFFF",
-        }}
-      >
+      <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
         {loading && (
-          <View
-            style={{ flex: 1, justifyContent: "center", alignItems: "center" }}
-          >
+          <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
             <ActivityIndicator size="large" color="#059669" />
           </View>
         )}
         {!loading && (
-          <ScrollView
-            style={{
-              flex: 1,
-              backgroundColor: "#FFFFFF",
-            }}
-          >
+          <ScrollView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
             <View
               style={{
                 flexDirection: "row",
@@ -159,50 +140,21 @@ export default function StocksScreen({
               }}
             >
               <Image
-                source={{
-                  uri: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/w8lS8rAT8w/afd3chsl_expires_30_days.png",
-                }}
-                resizeMode={"stretch"}
-                style={{
-                  width: 35,
-                  height: 35,
-                  marginRight: 13,
-                }}
+                source={{ uri: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/w8lS8rAT8w/afd3chsl_expires_30_days.png" }}
+                resizeMode="stretch"
+                style={{ width: 35, height: 35, marginRight: 13 }}
               />
-              <Text
-                style={{
-                  color: "#000000",
-                  fontSize: 18,
-                }}
-              >
-                {"Stocks"}
-              </Text>
-              <View
-                style={{
-                  flex: 1,
-                }}
-              ></View>
+              <Text style={{ color: "#000000", fontSize: 18 }}>Stocks</Text>
+              <View style={{ flex: 1 }} />
               <Image
-                source={{
-                  uri: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/w8lS8rAT8w/u7un6b0g_expires_30_days.png",
-                }}
-                resizeMode={"stretch"}
-                style={{
-                  width: 26,
-                  height: 26,
-                  marginRight: 25,
-                }}
+                source={{ uri: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/w8lS8rAT8w/u7un6b0g_expires_30_days.png" }}
+                resizeMode="stretch"
+                style={{ width: 26, height: 26, marginRight: 25 }}
               />
               <Image
-                source={{
-                  uri: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/w8lS8rAT8w/bfuc1q5o_expires_30_days.png",
-                }}
-                resizeMode={"stretch"}
-                style={{
-                  width: 26,
-                  height: 26,
-                  marginRight: 25,
-                }}
+                source={{ uri: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/w8lS8rAT8w/bfuc1q5o_expires_30_days.png" }}
+                resizeMode="stretch"
+                style={{ width: 26, height: 26, marginRight: 25 }}
               />
               <TouchableOpacity
                 onPress={onNavigateToProfile}
@@ -215,24 +167,15 @@ export default function StocksScreen({
                   alignItems: "center",
                 }}
               >
-                <Text
-                  style={{
-                    color: "#FFFFFF",
-                    fontSize: 16,
-                    fontWeight: "bold",
-                  }}
-                >
-                  {userInitial}
-                </Text>
+                <Text style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "bold" }}>{userInitial}</Text>
               </TouchableOpacity>
             </View>
+
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              style={{
-                flexDirection: "row",
-                marginBottom: 28,
-              }}
+              style={{ marginBottom: 28 }}
+              contentContainerStyle={{ flexDirection: "row", paddingHorizontal: 20 }}
             >
               <View
                 style={{
@@ -242,44 +185,13 @@ export default function StocksScreen({
                   paddingVertical: 15,
                   paddingLeft: 15,
                   paddingRight: 32,
-                  marginLeft: 21,
-                  marginRight: -361,
+                  marginRight: 15,
                 }}
               >
-                <Text
-                  style={{
-                    color: "#000000",
-                    fontSize: 13,
-                    marginBottom: 7,
-                  }}
-                >
-                  {"NIFTY 50"}
-                </Text>
-                <View
-                  style={{
-                    alignSelf: "flex-start",
-                    flexDirection: "row",
-                    alignItems: "center",
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: "#000000",
-                      fontSize: 13,
-                      marginRight: 9,
-                    }}
-                  >
-                    {`${indexPrices.nifty50}`}
-                  </Text>
-                  <Text
-                    style={{
-                      color: "#F35D5D",
-                      fontSize: 13,
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {"-27.40 (0.11%)"}
-                  </Text>
+                <Text style={{ color: "#000000", fontSize: 13, marginBottom: 7 }}>NIFTY 50</Text>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <Text style={{ color: "#000000", fontSize: 13, marginRight: 9 }}>{`${indexPrices.nifty50}`}</Text>
+                  <Text style={{ color: "#F35D5D", fontSize: 13, fontWeight: "bold" }}>-27.40 (0.11%)</Text>
                 </View>
               </View>
               <View
@@ -292,43 +204,14 @@ export default function StocksScreen({
                   paddingRight: 32,
                 }}
               >
-                <Text
-                  style={{
-                    color: "#000000",
-                    fontSize: 13,
-                    marginBottom: 7,
-                  }}
-                >
-                  {"BANK NIFTY"}
-                </Text>
-                <View
-                  style={{
-                    alignSelf: "flex-start",
-                    flexDirection: "row",
-                    alignItems: "center",
-                  }}
-                >
-                  <Text
-                    style={{
-                      color: "#000000",
-                      fontSize: 13,
-                      marginRight: 9,
-                    }}
-                  >
-                    {`${indexPrices.bankNifty}`}
-                  </Text>
-                  <Text
-                    style={{
-                      color: "#F35D5D",
-                      fontSize: 13,
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {"-16.00 (0.03%)"}
-                  </Text>
+                <Text style={{ color: "#000000", fontSize: 13, marginBottom: 7 }}>BANK NIFTY</Text>
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  <Text style={{ color: "#000000", fontSize: 13, marginRight: 9 }}>{`${indexPrices.bankNifty}`}</Text>
+                  <Text style={{ color: "#F35D5D", fontSize: 13, fontWeight: "bold" }}>-16.00 (0.03%)</Text>
                 </View>
               </View>
             </ScrollView>
+
             <View
               style={{
                 flexDirection: "row",
@@ -348,16 +231,8 @@ export default function StocksScreen({
                   paddingVertical: 10,
                   marginRight: 10,
                 }}
-                onPress={() => alert("Pressed!")}
               >
-                <Text
-                  style={{
-                    color: "#000000",
-                    fontSize: 14,
-                  }}
-                >
-                  {"Explore"}
-                </Text>
+                <Text style={{ color: "#000000", fontSize: 14 }}>Explore</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={{
@@ -369,39 +244,11 @@ export default function StocksScreen({
                   paddingVertical: 10,
                   marginRight: 10,
                 }}
-                onPress={() => alert("Pressed!")}
               >
-                <Text
-                  style={{
-                    color: "#000000",
-                    fontSize: 14,
-                  }}
-                >
-                  {"Holdings"}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={{
-                  borderColor: "#E8E8E8",
-                  borderRadius: 40,
-                  borderWidth: 1,
-                  paddingVertical: 10,
-                  paddingHorizontal: 19,
-                  marginRight: 10,
-                }}
-                onPress={() => alert("Pressed!")}
-              >
-                <Text
-                  style={{
-                    color: "#000000",
-                    fontSize: 14,
-                  }}
-                >
-                  {"ETF"}
-                </Text>
+                <Text style={{ color: "#000000", fontSize: 14 }}>Holdings</Text>
               </TouchableOpacity>
               <TextInput
-                placeholder={"Road Construction"}
+                placeholder={"Search..."}
                 value={textInput1}
                 onChangeText={onChangeTextInput1}
                 style={{
@@ -413,89 +260,69 @@ export default function StocksScreen({
                   borderWidth: 1,
                   paddingVertical: 10,
                   paddingHorizontal: 21,
+                  marginRight: 20,
                 }}
               />
             </View>
-            <View
-              style={{
-                marginBottom: 28,
-                marginHorizontal: 20,
-              }}
-            >
-              <Text
-                style={{
-                  color: "#000000",
-                  fontSize: 18,
-                  marginBottom: 24,
-                  marginLeft: 1,
-                }}
-              >
-                {"Most bought on Groww"}
+
+            <View style={{ marginBottom: 28 }}>
+              <Text style={{ color: "#000000", fontSize: 18, marginBottom: 24, marginLeft: 21 }}>
+                Most bought on Groww
               </Text>
-              <View
-                style={{
-                  flexDirection: "row",
-                  flexWrap: "wrap",
-                  justifyContent: "space-between",
-                }}
-              >
+              <View style={{ paddingHorizontal: 20 }}>
                 {mostBoughtStocks.map((stock) => (
                   <TouchableOpacity
                     key={stock.symbol}
-                    onPress={() =>
-                      onNavigateToDetails && onNavigateToDetails(stock)
-                    }
+                    onPress={() => onNavigateToDetails && onNavigateToDetails(stock)}
                     style={{
-                      width: "48%",
                       borderColor: "#E8E8E8",
-                      borderRadius: 10,
+                      borderRadius: 12,
                       borderWidth: 1,
-                      padding: 15,
-                      marginBottom: 15,
+                      padding: 16,
+                      marginBottom: 12,
                       backgroundColor: "#FFF",
+                      shadowColor: "#000",
+                      shadowOffset: { width: 0, height: 1 },
+                      shadowOpacity: 0.05,
+                      shadowRadius: 2,
+                      elevation: 2,
                     }}
                   >
                     <View
                       style={{
                         flexDirection: "row",
                         justifyContent: "space-between",
-                        marginBottom: 10,
+                        alignItems: "center",
                       }}
                     >
-                      <Text
-                        style={{
-                          fontSize: 16,
-                          fontWeight: "bold",
-                          color: "#000",
-                        }}
-                      >
-                        {stock.symbol}
-                      </Text>
-                      <Text style={{ fontSize: 14, color: "#000" }}>
-                        {stock.price ? `${stock.price}` : "..."}
-                      </Text>
+                      <View>
+                        <Text style={{ fontSize: 16, fontWeight: "700", color: "#000" }}>
+                          {stock.symbol}
+                        </Text>
+                        <Text style={{ fontSize: 13, color: "#666", marginTop: 2 }}>
+                          {stock.name}
+                        </Text>
+                      </View>
+                      <View style={{ alignItems: "flex-end" }}>
+                        <Text style={{ fontSize: 16, fontWeight: "600", color: "#000" }}>
+                          {stock.price ? `₹${stock.price}` : "..."}
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: 13,
+                            color: stock.change.includes("-") ? "#F35D5D" : "#00B386",
+                            fontWeight: "600",
+                            marginTop: 2,
+                          }}
+                        >
+                          {stock.change}
+                        </Text>
+                      </View>
                     </View>
-                    <Text
-                      style={{
-                        fontSize: 12,
-                        color: stock.change.includes("-")
-                          ? "#F35D5D"
-                          : "#00B386",
-                        fontWeight: "600",
-                      }}
-                    >
-                      {stock.change}
-                    </Text>
-                    <Text
-                      style={{ fontSize: 12, color: "#757575", marginTop: 4 }}
-                    >
-                      {stock.name}
-                    </Text>
                   </TouchableOpacity>
                 ))}
               </View>
             </View>
-
           </ScrollView>
         )}
       </SafeAreaView>
