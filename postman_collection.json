@@ -1,0 +1,63 @@
+{
+  "info": {
+    "name": "Groww Clone API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "http://localhost:5000/api/auth/register", "host": ["localhost"], "port": "5000", "path": ["api", "auth", "register"] }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "http://localhost:5000/api/auth/login", "host": ["localhost"], "port": "5000", "path": ["api", "auth", "login"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders",
+      "item": [
+        {
+          "name": "Get Orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "http://localhost:5000/api/orders", "host": ["localhost"], "port": "5000", "path": ["api", "orders"] }
+          }
+        },
+        {
+          "name": "Create Order",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "http://localhost:5000/api/orders", "host": ["localhost"], "port": "5000", "path": ["api", "orders"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Portfolio",
+      "item": [
+        {
+          "name": "Get Portfolio Balance",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "http://localhost:5000/api/portfolio", "host": ["localhost"], "port": "5000", "path": ["api", "portfolio"] }
+          }
+        }
+      ]
+    }
+  ]
+}
