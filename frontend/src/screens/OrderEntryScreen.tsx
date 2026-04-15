@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 import {
   View,
   Text,
@@ -13,7 +13,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path } from "react-native-svg";
-import { createOrder } from "../services/api";
+import { createOrder, fetchPortfolio } from "../services/api";
 import { PriceContext } from "../context/PriceContext";
 
 interface OrderEntryScreenProps {
@@ -31,8 +31,34 @@ export default function OrderEntryScreen({
 }: OrderEntryScreenProps) {
   const [quantity, setQuantity] = useState("1");
   const [loading, setLoading] = useState(false);
+  const [availableShares, setAvailableShares] = useState<number | null>(null);
+  const [walletBalance, setWalletBalance] = useState<string>("0.00");
   const priceContext = useContext(PriceContext);
   const currentPrice = priceContext?.prices[symbol] || 0;
+
+  useEffect(() => {
+    const loadPortfolio = async () => {
+      try {
+        const res = await fetchPortfolio();
+        if (res.success) {
+          if (res.portfolio) {
+            const holding = res.portfolio.find((h: any) => h.symbol === symbol);
+            if (holding) {
+              setAvailableShares(Number(holding.total_quantity));
+            } else {
+              setAvailableShares(0);
+            }
+          }
+          if (res.balance !== undefined) {
+            setWalletBalance(parseFloat(res.balance).toFixed(2));
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching portfolio in OrderEntryScreen:", error);
+      }
+    };
+    loadPortfolio();
+  }, [symbol]);
 
   const isBuy = tradeType === "BUY";
   const mainColor = isBuy ? "#00B386" : "#F35D5D";
@@ -116,9 +142,16 @@ export default function OrderEntryScreen({
                   borderColor: "#F0F0F0",
                 }}
               >
-                <Text style={{ fontSize: 14, color: "#777", fontWeight: "700", marginBottom: 12 }}>
-                  QUANTITY
-                </Text>
+                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                  <Text style={{ fontSize: 13, color: "#777", fontWeight: "700" }}>
+                    QUANTITY
+                  </Text>
+                  {!isBuy && availableShares !== null && (
+                    <Text style={{ fontSize: 13, color: "#F35D5D", fontWeight: "700" }}>
+                      Available: {availableShares} shares
+                    </Text>
+                  )}
+                </View>
                 <TextInput
                   style={{
                     fontSize: 32,
@@ -183,7 +216,7 @@ export default function OrderEntryScreen({
                   Wallet Balance
                 </Text>
                 <Text style={{ fontSize: 14, color: "#111", fontWeight: "800" }}>
-                  ₹24,500.00
+                  ₹{parseFloat(walletBalance).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                 </Text>
               </View>
 

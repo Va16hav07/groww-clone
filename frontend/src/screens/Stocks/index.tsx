@@ -11,6 +11,7 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AuthContext } from "../../context/AuthContext";
 import { PriceContext } from "../../context/PriceContext";
+import { fetchPortfolio } from "../../services/api";
 
 import BottomNavBar from "../../components/BottomNavBar";
 
@@ -39,25 +40,38 @@ export default function StocksScreen({
   onNavigateToDetails,
 }: StocksScreenProps): React.ReactElement {
   const [textInput1, onChangeTextInput1] = useState<string>("");
+  const [currentView, setCurrentView] = useState<"Explore" | "Holdings">("Explore");
+  const [holdings, setHoldings] = useState<any[]>([]);
   const { user } = useContext(AuthContext) as AuthContextType;
   const userInitial = user?.name?.charAt(0)?.toUpperCase() || "U";
   const priceContext = useContext(PriceContext);
   
   const prices = priceContext?.prices || {};
-  const loading = priceContext?.loading ?? true;
+  const loadingPrices = priceContext?.loading ?? true;
+  const [loadingPortfolio, setLoadingPortfolio] = useState(false);
+
+  useEffect(() => {
+    const loadPortfolio = async () => {
+      setLoadingPortfolio(true);
+      try {
+        const res = await fetchPortfolio();
+        if (res.success) {
+          setHoldings(res.portfolio);
+        }
+      } catch (error) {
+        console.error("Error loading portfolio in StocksScreen:", error);
+      } finally {
+        setLoadingPortfolio(false);
+      }
+    };
+    loadPortfolio();
+  }, []);
 
   const stockNames: { [key: string]: string } = {
-    RELIANCE: "Reliance",
-    TCS: "TCS",
+    RELIANCE: "Reliance Industries",
+    TCS: "Tata Consultancy Services",
     HDFCBANK: "HDFC Bank",
-    INFY: "Infosys",
-  };
-
-  const stockChanges: { [key: string]: string } = {
-    RELIANCE: "+59.80 (7.83%)",
-    TCS: "-255.70 (5.46%)",
-    HDFCBANK: "+6.80 (2.49%)",
-    INFY: "+31.20 (7.24%)",
+    INFY: "Infosys Limited",
   };
 
   const getMostBoughtStocks = (): StockData[] => {
@@ -66,9 +80,9 @@ export default function StocksScreen({
       .filter((symbol) => prices[symbol])
       .map((symbol) => ({
         symbol,
-        name: stockNames[symbol],
+        name: stockNames[symbol] || symbol,
         price: prices[symbol],
-        change: stockChanges[symbol],
+        change: prices[symbol] ? (Number(prices[symbol]) > 1000 ? "+31.20 (2.24%)" : "-12.40 (1.10%)") : "...",
       }));
   };
 
@@ -85,12 +99,12 @@ export default function StocksScreen({
   return (
     <BottomNavBar onTabChange={(tab) => console.log("Tab changed to:", tab)}>
       <SafeAreaView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
-        {loading && (
+        {(loadingPrices || loadingPortfolio) && (
           <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
             <ActivityIndicator size="large" color="#059669" />
           </View>
         )}
-        {!loading && (
+        {!(loadingPrices || loadingPortfolio) && (
           <ScrollView style={{ flex: 1, backgroundColor: "#FFFFFF" }}>
             <View
               style={{
@@ -106,30 +120,28 @@ export default function StocksScreen({
                 resizeMode="stretch"
                 style={{ width: 35, height: 35, marginRight: 13 }}
               />
-              <Text style={{ color: "#000000", fontSize: 18 }}>Stocks</Text>
+              <Text style={{ color: "#000000", fontSize: 18, fontWeight: "800" }}>Stocks</Text>
               <View style={{ flex: 1 }} />
-              <Image
-                source={{ uri: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/w8lS8rAT8w/u7un6b0g_expires_30_days.png" }}
-                resizeMode="stretch"
-                style={{ width: 26, height: 26, marginRight: 25 }}
-              />
-              <Image
-                source={{ uri: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/w8lS8rAT8w/bfuc1q5o_expires_30_days.png" }}
-                resizeMode="stretch"
-                style={{ width: 26, height: 26, marginRight: 25 }}
-              />
-              <TouchableOpacity
-                onPress={onNavigateToProfile}
-                style={{
-                  width: 35,
-                  height: 35,
-                  borderRadius: 17.5,
-                  backgroundColor: "#059669",
-                  justifyContent: "center",
-                  alignItems: "center",
-                }}
-              >
-                <Text style={{ color: "#FFFFFF", fontSize: 16, fontWeight: "bold" }}>{userInitial}</Text>
+              <TouchableOpacity>
+                <Image
+                  source={{ uri: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/w8lS8rAT8w/u7un6b0g_expires_30_days.png" }}
+                  resizeMode="stretch"
+                  style={{ width: 24, height: 24, marginRight: 25 }}
+                />
+              </TouchableOpacity>
+              <TouchableOpacity onPress={onNavigateToProfile}>
+                <View
+                  style={{
+                    width: 32,
+                    height: 32,
+                    borderRadius: 16,
+                    backgroundColor: "#059669",
+                    justifyContent: "center",
+                    alignItems: "center",
+                  }}
+                >
+                  <Text style={{ color: "#FFFFFF", fontSize: 14, fontWeight: "bold" }}>{userInitial}</Text>
+                </View>
               </TouchableOpacity>
             </View>
 
@@ -142,34 +154,34 @@ export default function StocksScreen({
               <View
                 style={{
                   borderColor: "#E8E8E8",
-                  borderRadius: 10,
+                  borderRadius: 12,
                   borderWidth: 1,
-                  paddingVertical: 15,
-                  paddingLeft: 15,
-                  paddingRight: 32,
-                  marginRight: 15,
+                  paddingVertical: 12,
+                  paddingHorizontal: 16,
+                  marginRight: 12,
+                  backgroundColor: "#FAFAFA",
                 }}
               >
-                <Text style={{ color: "#000000", fontSize: 13, marginBottom: 7 }}>NIFTY 50</Text>
+                <Text style={{ color: "#666", fontSize: 11, marginBottom: 4, fontWeight: "600" }}>NIFTY 50</Text>
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <Text style={{ color: "#000000", fontSize: 13, marginRight: 9 }}>{`${indexPrices.nifty50}`}</Text>
-                  <Text style={{ color: "#F35D5D", fontSize: 13, fontWeight: "bold" }}>-27.40 (0.11%)</Text>
+                  <Text style={{ color: "#000", fontSize: 14, marginRight: 8, fontWeight: "700" }}>{`${indexPrices.nifty50}`}</Text>
+                  <Text style={{ color: "#F35D5D", fontSize: 12, fontWeight: "600" }}>-27.40 (0.11%)</Text>
                 </View>
               </View>
               <View
                 style={{
                   borderColor: "#E8E8E8",
-                  borderRadius: 10,
+                  borderRadius: 12,
                   borderWidth: 1,
-                  paddingVertical: 15,
-                  paddingLeft: 15,
-                  paddingRight: 32,
+                  paddingVertical: 12,
+                  paddingHorizontal: 16,
+                  backgroundColor: "#FAFAFA",
                 }}
               >
-                <Text style={{ color: "#000000", fontSize: 13, marginBottom: 7 }}>BANK NIFTY</Text>
+                <Text style={{ color: "#666", fontSize: 11, marginBottom: 4, fontWeight: "600" }}>BANK NIFTY</Text>
                 <View style={{ flexDirection: "row", alignItems: "center" }}>
-                  <Text style={{ color: "#000000", fontSize: 13, marginRight: 9 }}>{`${indexPrices.bankNifty}`}</Text>
-                  <Text style={{ color: "#F35D5D", fontSize: 13, fontWeight: "bold" }}>-16.00 (0.03%)</Text>
+                  <Text style={{ color: "#000", fontSize: 14, marginRight: 8, fontWeight: "700" }}>{`${indexPrices.bankNifty}`}</Text>
+                  <Text style={{ color: "#F35D5D", fontSize: 12, fontWeight: "600" }}>-16.00 (0.03%)</Text>
                 </View>
               </View>
             </ScrollView>
@@ -179,112 +191,235 @@ export default function StocksScreen({
                 flexDirection: "row",
                 alignItems: "center",
                 marginBottom: 28,
-                marginLeft: 20,
+                paddingHorizontal: 20,
               }}
             >
               <TouchableOpacity
+                onPress={() => setCurrentView("Explore")}
                 style={{
                   flex: 1,
                   alignItems: "center",
-                  backgroundColor: "#ECECEC",
-                  borderColor: "#000000",
-                  borderRadius: 40,
-                  borderWidth: 1,
+                  backgroundColor: currentView === "Explore" ? "#00B386" : "#F9F9F9",
+                  borderRadius: 20,
                   paddingVertical: 10,
-                  marginRight: 10,
+                  marginRight: 8,
                 }}
               >
-                <Text style={{ color: "#000000", fontSize: 14 }}>Explore</Text>
+                <Text style={{ color: currentView === "Explore" ? "#FFF" : "#666", fontSize: 14, fontWeight: "700" }}>Explore</Text>
               </TouchableOpacity>
               <TouchableOpacity
+                onPress={() => setCurrentView("Holdings")}
                 style={{
                   flex: 1,
                   alignItems: "center",
-                  borderColor: "#E8E8E8",
-                  borderRadius: 40,
-                  borderWidth: 1,
+                  backgroundColor: currentView === "Holdings" ? "#00B386" : "#F9F9F9",
+                  borderRadius: 20,
                   paddingVertical: 10,
-                  marginRight: 10,
+                  marginRight: 8,
                 }}
               >
-                <Text style={{ color: "#000000", fontSize: 14 }}>Holdings</Text>
+                <Text style={{ color: currentView === "Holdings" ? "#FFF" : "#666", fontSize: 14, fontWeight: "700" }}>Holdings</Text>
               </TouchableOpacity>
-              <TextInput
-                placeholder={"Search..."}
-                value={textInput1}
-                onChangeText={onChangeTextInput1}
-                style={{
-                  color: "#000000",
-                  fontSize: 14,
-                  flex: 1,
-                  borderColor: "#E8E8E8",
-                  borderRadius: 40,
-                  borderWidth: 1,
-                  paddingVertical: 10,
-                  paddingHorizontal: 21,
-                  marginRight: 20,
-                }}
-              />
+              <View style={{ flex: 1.2, position: 'relative' }}>
+                <TextInput
+                  placeholder={"Search stocks"}
+                  value={textInput1}
+                  onChangeText={onChangeTextInput1}
+                  style={{
+                    color: "#000000",
+                    fontSize: 14,
+                    borderColor: "#E8E8E8",
+                    borderRadius: 20,
+                    borderWidth: 1,
+                    paddingVertical: 10,
+                    paddingHorizontal: 16,
+                    backgroundColor: "#FFF",
+                  }}
+                />
+              </View>
             </View>
 
-            <View style={{ marginBottom: 28 }}>
-              <Text style={{ color: "#000000", fontSize: 18, marginBottom: 24, marginLeft: 21 }}>
-                Most bought on Groww
-              </Text>
-              <View style={{ paddingHorizontal: 20 }}>
-                {mostBoughtStocks.map((stock) => (
-                  <TouchableOpacity
-                    key={stock.symbol}
-                    onPress={() => onNavigateToDetails && onNavigateToDetails(stock)}
-                    style={{
-                      borderColor: "#E8E8E8",
-                      borderRadius: 12,
-                      borderWidth: 1,
-                      padding: 16,
-                      marginBottom: 12,
-                      backgroundColor: "#FFF",
-                      shadowColor: "#000",
-                      shadowOffset: { width: 0, height: 1 },
-                      shadowOpacity: 0.05,
-                      shadowRadius: 2,
-                      elevation: 2,
-                    }}
-                  >
-                    <View
+            {currentView === "Explore" ? (
+              <View style={{ marginBottom: 28 }}>
+                <Text style={{ color: "#111", fontSize: 20, fontWeight: "800", marginBottom: 20, marginLeft: 20 }}>
+                  Most bought on Groww
+                </Text>
+                <View style={{ paddingHorizontal: 20 }}>
+                  {mostBoughtStocks.map((stock) => (
+                    <TouchableOpacity
+                      key={stock.symbol}
+                      onPress={() => onNavigateToDetails && onNavigateToDetails(stock)}
                       style={{
-                        flexDirection: "row",
-                        justifyContent: "space-between",
-                        alignItems: "center",
+                        borderColor: "#F0F0F0",
+                        borderRadius: 16,
+                        borderWidth: 1,
+                        padding: 16,
+                        marginBottom: 12,
+                        backgroundColor: "#FFF",
+                        shadowColor: "#000",
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.05,
+                        shadowRadius: 4,
+                        elevation: 2,
                       }}
                     >
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
+                      >
+                        <View>
+                          <Text style={{ fontSize: 16, fontWeight: "800", color: "#000" }}>
+                            {stock.symbol}
+                          </Text>
+                          <Text style={{ fontSize: 12, color: "#999", marginTop: 2, fontWeight: "600" }}>
+                            {stock.name}
+                          </Text>
+                        </View>
+                        <View style={{ alignItems: "flex-end" }}>
+                          <Text style={{ fontSize: 16, fontWeight: "800", color: "#000" }}>
+                            {stock.price ? `₹${stock.price}` : "..."}
+                          </Text>
+                          <Text
+                            style={{
+                              fontSize: 12,
+                              color: stock.change.includes("-") ? "#F35D5D" : "#00B386",
+                              fontWeight: "700",
+                              marginTop: 2,
+                            }}
+                          >
+                            {stock.change}
+                          </Text>
+                        </View>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
+            ) : (
+              <View style={{ marginBottom: 28 }}>
+                {holdings.length > 0 && (
+                  <View
+                    style={{
+                      marginHorizontal: 20,
+                      marginBottom: 24,
+                      backgroundColor: "#00B386",
+                      borderRadius: 20,
+                      padding: 20,
+                      shadowColor: "#00B386",
+                      shadowOffset: { width: 0, height: 4 },
+                      shadowOpacity: 0.2,
+                      shadowRadius: 8,
+                      elevation: 5,
+                    }}
+                  >
+                    <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 13, fontWeight: "700", marginBottom: 4 }}>
+                      CURRENT VALUE
+                    </Text>
+                    <Text style={{ color: "#FFF", fontSize: 28, fontWeight: "800", marginBottom: 16 }}>
+                      ₹{holdings.reduce((sum, h) => sum + (parseFloat(h.total_quantity) * (prices[h.symbol] || h.average_price || 0)), 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </Text>
+                    <View style={{ flexDirection: 'row', justifyContent: 'space-between', borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.2)', paddingTop: 16 }}>
                       <View>
-                        <Text style={{ fontSize: 16, fontWeight: "700", color: "#000" }}>
-                          {stock.symbol}
+                        <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 11, fontWeight: "700", marginBottom: 2 }}>
+                          TOTAL SHARES
                         </Text>
-                        <Text style={{ fontSize: 13, color: "#666", marginTop: 2 }}>
-                          {stock.name}
+                        <Text style={{ color: "#FFF", fontSize: 16, fontWeight: "800" }}>
+                          {holdings.reduce((sum, h) => sum + parseInt(h.total_quantity), 0)}
                         </Text>
                       </View>
-                      <View style={{ alignItems: "flex-end" }}>
-                        <Text style={{ fontSize: 16, fontWeight: "600", color: "#000" }}>
-                          {stock.price ? `₹${stock.price}` : "..."}
+                      <View style={{ alignItems: 'flex-end' }}>
+                        <Text style={{ color: "rgba(255,255,255,0.8)", fontSize: 11, fontWeight: "700", marginBottom: 2 }}>
+                          TOTAL STOCKS
                         </Text>
-                        <Text
-                          style={{
-                            fontSize: 13,
-                            color: stock.change.includes("-") ? "#F35D5D" : "#00B386",
-                            fontWeight: "600",
-                            marginTop: 2,
-                          }}
-                        >
-                          {stock.change}
+                        <Text style={{ color: "#FFF", fontSize: 16, fontWeight: "800" }}>
+                          {holdings.length}
                         </Text>
                       </View>
                     </View>
-                  </TouchableOpacity>
-                ))}
+                  </View>
+                )}
+
+                <Text style={{ color: "#111", fontSize: 20, fontWeight: "800", marginBottom: 20, marginLeft: 20 }}>
+                  Your Holdings
+                </Text>
+                <View style={{ paddingHorizontal: 20 }}>
+                  {holdings.length > 0 ? (
+                    holdings.map((holding) => {
+                      const currentP = prices[holding.symbol] || holding.average_price || 0;
+                      const worth = (parseFloat(holding.total_quantity) * Number(currentP)).toFixed(2);
+                      const displayStock = {
+                        symbol: holding.symbol,
+                        name: stockNames[holding.symbol] || holding.symbol,
+                        price: currentP,
+                        change: "+0.00 (0.00%)" // Dummy change for now
+                      };
+                      
+                      return (
+                        <TouchableOpacity
+                          key={holding.symbol}
+                          onPress={() => onNavigateToDetails && onNavigateToDetails(displayStock)}
+                          style={{
+                            borderColor: "#F0F0F0",
+                            borderRadius: 16,
+                            borderWidth: 1,
+                            padding: 16,
+                            marginBottom: 12,
+                            backgroundColor: "#FFF",
+                            shadowColor: "#000",
+                            shadowOffset: { width: 0, height: 2 },
+                            shadowOpacity: 0.05,
+                            shadowRadius: 4,
+                            elevation: 2,
+                          }}
+                        >
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              justifyContent: "space-between",
+                              alignItems: "center",
+                            }}
+                          >
+                            <View>
+                              <Text style={{ fontSize: 16, fontWeight: "800", color: "#000" }}>
+                                {holding.symbol}
+                              </Text>
+                              <Text style={{ fontSize: 12, color: "#999", marginTop: 4, fontWeight: "600" }}>
+                                Qty: {holding.total_quantity}
+                              </Text>
+                            </View>
+                            <View style={{ alignItems: "flex-end" }}>
+                              <Text style={{ fontSize: 16, fontWeight: "800", color: "#000" }}>
+                                ₹{parseFloat(worth).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                              </Text>
+                              <Text
+                                style={{
+                                  fontSize: 12,
+                                  color: "#666",
+                                  fontWeight: "700",
+                                  marginTop: 4,
+                                }}
+                              >
+                                Price: ₹{currentP}
+                              </Text>
+                            </View>
+                          </View>
+                        </TouchableOpacity>
+                      );
+                    })
+                  ) : (
+                    <View style={{ padding: 40, alignItems: 'center' }}>
+                      <Text style={{ color: '#999', fontSize: 16, fontWeight: '600' }}>No holdings yet</Text>
+                      <TouchableOpacity onPress={() => setCurrentView('Explore')} style={{ marginTop: 12 }}>
+                        <Text style={{ color: '#00B386', fontWeight: '800' }}>Explore Stocks</Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+                </View>
               </View>
-            </View>
+            )}
           </ScrollView>
         )}
       </SafeAreaView>
