@@ -6,7 +6,9 @@
   "scripts": {
     "test": "echo 'Error: no test specified' && exit 1",
     "start": "node src/server.js",
-    "dev": "concurrently 'nodemon src/server.js' 'nodemon gateway/server.js'"
+    "start:services": "concurrently \"node services/api-gateway/index.js\" \"node services/user-service/index.js\" \"node services/order-service/index.js\" \"node services/price-service/index.js\" \"node services/exchange-service/index.js\" \"node gateway/server.js\"",
+    "dev": "concurrently 'nodemon src/server.js' 'nodemon gateway/server.js'",
+    "dev:services": "concurrently \"nodemon services/api-gateway/index.js\" \"nodemon services/user-service/index.js\" \"nodemon services/order-service/index.js\" \"nodemon services/price-service/index.js\" \"nodemon services/exchange-service/index.js\" \"nodemon gateway/server.js\""
   },
   "repository": {
     "type": "git",
@@ -33,7 +35,8 @@
     "ioredis": "^5.10.1",
     "jsonwebtoken": "^9.0.3",
     "kafkajs": "^2.2.4",
-    "pg": "^8.19.0"
+    "pg": "^8.19.0",
+    "@upstash/redis": "^1.33.3"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",

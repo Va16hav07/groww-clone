@@ -12,20 +12,13 @@ import { AuthProvider, AuthContext } from './src/context/AuthContext';
 import { View, ActivityIndicator } from 'react-native';
 import { PriceProvider } from './src/context/PriceContext';
 
+import PinSetupScreen from './src/screens/PinSetupScreen';
+import PinLoginScreen from './src/screens/PinLoginScreen';
+
 type ScreenName = 'login' | 'signup' | 'stocks' | 'profile' | 'details' | 'orders' | 'orderEntry';
 
-interface User {
-  name?: string;
-  email?: string;
-}
-
-interface AuthContextType {
-  user: User | null;
-  isLoading: boolean;
-}
-
 function RootNavigator(): React.ReactElement {
-  const { user, isLoading } = useContext(AuthContext) as AuthContextType;
+  const { user, isLoading, isPinSet, isPinVerified } = useContext(AuthContext) as any;
   const [currentScreen, setCurrentScreen] = useState<ScreenName>('login');
   const [selectedStock, setSelectedStock] = useState<any>(null);
   const [tradeType, setTradeType] = useState<"BUY" | "SELL">('BUY');
@@ -39,6 +32,14 @@ function RootNavigator(): React.ReactElement {
   }
 
   if (user) {
+    // Security layer
+    if (!isPinSet) {
+      return <PinSetupScreen />;
+    }
+    if (!isPinVerified) {
+      return <PinLoginScreen />;
+    }
+
     if (currentScreen === 'profile') {
       return <ProfileScreen onNavigateToHome={() => setCurrentScreen('stocks')} onNavigateToOrders={() => setCurrentScreen('orders')} />;
     }

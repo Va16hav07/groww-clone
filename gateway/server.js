@@ -1,6 +1,9 @@
 const express = require('express');
 const cors = require('cors');
 const { Kafka } = require('kafkajs');
+const fs = require('fs');
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '../.env') });
 
 const app = express();
 const PORT = 8001;
@@ -8,9 +11,19 @@ const PORT = 8001;
 app.use(cors());
 app.use(express.json());
 
+const certPath = path.resolve(__dirname, '../certs');
+
+const sslOptions = process.env.KAFKA_SSL === 'true' ? {
+  rejectUnauthorized: true,
+  ca: [fs.readFileSync(`${certPath}/ca.pem`, 'utf-8')],
+  key: fs.readFileSync(`${certPath}/service.key`, 'utf-8'),
+  cert: fs.readFileSync(`${certPath}/service.cert`, 'utf-8'),
+} : undefined;
+
 const kafka = new Kafka({
   clientId: 'exchange-mock',
-  brokers: [process.env.KAFKA_BROKER || 'localhost:9092']
+  brokers: [process.env.KAFKA_BROKER || 'localhost:9092'],
+  ssl: sslOptions
 });
 const producer = kafka.producer();
 const admin = kafka.admin();
