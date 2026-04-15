@@ -25,7 +25,7 @@ export default function ProfileScreen({
 }: ProfileScreenProps): React.ReactElement {
   const { user, logout } = useContext(AuthContext) as AuthContextType;
   const userInitial = user?.name?.charAt(0)?.toUpperCase() || "U";
-  const [balance, setBalance] = useState("$0.00");
+  const [balance, setBalance] = useState("₹0.00");
   const [addMoneyVisible, setAddMoneyVisible] = useState(false);
   const [amountToAdd, setAmountToAdd] = useState("");
   const [addingMoney, setAddingMoney] = useState(false);
@@ -34,7 +34,7 @@ export default function ProfileScreen({
     fetchPortfolio()
       .then((res) => {
         if (res.balance !== undefined) {
-          setBalance(`$${parseFloat(res.balance).toFixed(2)}`);
+          setBalance(`₹${parseFloat(res.balance).toFixed(2)}`);
         }
       })
       .catch(console.error);
