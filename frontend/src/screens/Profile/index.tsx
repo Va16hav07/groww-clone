@@ -29,6 +29,7 @@ export default function ProfileScreen({
   const [addMoneyVisible, setAddMoneyVisible] = useState(false);
   const [amountToAdd, setAmountToAdd] = useState("");
   const [addingMoney, setAddingMoney] = useState(false);
+  const [paymentStep, setPaymentStep] = useState<"input" | "processing" | "gateway" | "success">("input");
 
   useEffect(() => {
     fetchPortfolio()
@@ -40,24 +41,36 @@ export default function ProfileScreen({
       .catch(console.error);
   }, []);
 
-  const handleAddMoney = async () => {
+  const startPaymentFlow = () => {
     const amt = parseFloat(amountToAdd);
-    if (isNaN(amt) || amt <= 0) {
-      Alert.alert("Invalid Input", "Please enter a valid amount.");
+    if (isNaN(amt) || amt <= 10) {
+      Alert.alert("Invalid Amount", "Please enter at least ₹10.");
       return;
     }
+    setPaymentStep("processing");
+    setTimeout(() => {
+      setPaymentStep("gateway");
+    }, 2000);
+  };
+
+  const confirmPayment = async () => {
     setAddingMoney(true);
     try {
+      const amt = parseFloat(amountToAdd);
       const res = await addMoney(amt);
       if (res.success) {
-        setBalance(`$${parseFloat(res.balance).toFixed(2)}`);
-        setAddMoneyVisible(false);
-        setAmountToAdd("");
-        Alert.alert("Success", "Funds added successfully!");
+        setBalance(`₹${parseFloat(res.balance).toFixed(2)}`);
+        setPaymentStep("success");
+        setTimeout(() => {
+          setAddMoneyVisible(false);
+          setPaymentStep("input");
+          setAmountToAdd("");
+        }, 2000);
       }
     } catch (error) {
       console.error(error);
-      Alert.alert("Error", "Could not add money at this time.");
+      Alert.alert("Payment Failed", "Something went wrong. Please try again.");
+      setPaymentStep("input");
     } finally {
       setAddingMoney(false);
     }
@@ -375,24 +388,91 @@ export default function ProfileScreen({
       </ScrollView>
 
       <Modal visible={addMoneyVisible} transparent animationType="slide">
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
-          <View style={{ backgroundColor: '#fff', width: '80%', padding: 20, borderRadius: 10 }}>
-            <Text style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 15 }}>Add Funds</Text>
-            <TextInput 
-              style={{ borderWidth: 1, borderColor: '#ccc', borderRadius: 8, padding: 10, fontSize: 16, marginBottom: 15 }}
-              keyboardType="numeric"
-              placeholder="Enter amount (e.g. 1000)"
-              value={amountToAdd}
-              onChangeText={setAmountToAdd}
-            />
-            <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
-              <TouchableOpacity onPress={() => setAddMoneyVisible(false)} style={{ padding: 10, marginRight: 10 }}>
-                <Text style={{ color: '#757575', fontWeight: 'bold' }}>CANCEL</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleAddMoney} style={{ padding: 10, backgroundColor: '#059669', borderRadius: 8 }}>
-                {addingMoney ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: 'bold' }}>ADD</Text>}
-              </TouchableOpacity>
-            </View>
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' }}>
+          <View style={{ backgroundColor: '#fff', width: '90%', padding: 24, borderRadius: 20, shadowColor: "#000", shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.25, shadowRadius: 20, elevation: 10 }}>
+            
+            {paymentStep === "input" && (
+              <>
+                <Text style={{ fontSize: 20, fontWeight: '800', marginBottom: 8, color: '#000' }}>Add Funds</Text>
+                <Text style={{ fontSize: 13, color: '#666', marginBottom: 20, fontWeight: '600' }}>Enter amount to add to your Groww Balance</Text>
+                <View style={{ backgroundColor: '#F9F9F9', borderRadius: 12, padding: 16, borderWidth: 1, borderColor: '#EEE', marginBottom: 24 }}>
+                  <Text style={{ fontSize: 11, color: '#999', fontWeight: '800', marginBottom: 4 }}>AMOUNT (₹)</Text>
+                  <TextInput 
+                    style={{ fontSize: 24, fontWeight: '800', color: '#000', padding: 0 }}
+                    keyboardType="numeric"
+                    placeholder="0"
+                    value={amountToAdd}
+                    onChangeText={setAmountToAdd}
+                    autoFocus
+                  />
+                </View>
+                <View style={{ flexDirection: 'row', justifyContent: 'flex-end', gap: 12 }}>
+                  <TouchableOpacity onPress={() => setAddMoneyVisible(false)} style={{ paddingVertical: 12, paddingHorizontal: 20 }}>
+                    <Text style={{ color: '#666', fontWeight: '700' }}>CANCEL</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity 
+                    onPress={startPaymentFlow} 
+                    style={{ backgroundColor: '#059669', borderRadius: 12, paddingVertical: 12, paddingHorizontal: 24, shadowColor: "#059669", shadowOpacity: 0.3, shadowOffset: { width: 0, height: 4 }, shadowRadius: 8, elevation: 5 }}
+                  >
+                    <Text style={{ color: '#fff', fontWeight: '800' }}>PROCEED</Text>
+                  </TouchableOpacity>
+                </View>
+              </>
+            )}
+
+            {paymentStep === "processing" && (
+              <View style={{ alignItems: 'center', paddingVertical: 20 }}>
+                <ActivityIndicator size="large" color="#059669" />
+                <Text style={{ marginTop: 24, fontSize: 16, fontWeight: '700', color: '#333' }}>Connecting to Secure Gateway</Text>
+                <Text style={{ marginTop: 8, fontSize: 13, color: '#999', fontWeight: '600' }}>Please do not refresh or close this tab</Text>
+              </View>
+            )}
+
+            {paymentStep === "gateway" && (
+              <View style={{ alignItems: 'center' }}>
+                <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: '#E9FAF2', justifyContent: 'center', alignItems: 'center', marginBottom: 20 }}>
+                  <Image 
+                    source={{ uri: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/w8lS8rAT8w/1sr6mp42_expires_30_days.png" }}
+                    style={{ width: 30, height: 30 }}
+                  />
+                </View>
+                <Text style={{ fontSize: 18, fontWeight: '800', color: '#000', marginBottom: 4 }}>Secure Payment</Text>
+                <Text style={{ fontSize: 24, fontWeight: '900', color: '#059669', marginBottom: 24 }}>₹{parseFloat(amountToAdd).toLocaleString('en-IN')}</Text>
+                
+                <View style={{ width: '100%', backgroundColor: '#F9F9F9', borderRadius: 12, padding: 20, marginBottom: 24 }}>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginBottom: 12 }}>
+                    <Text style={{ color: '#666', fontWeight: '600' }}>Payment Method</Text>
+                    <Text style={{ color: '#000', fontWeight: '700' }}>Groww UPI</Text>
+                  </View>
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+                    <Text style={{ color: '#666', fontWeight: '600' }}>Transaction Fee</Text>
+                    <Text style={{ color: '#000', fontWeight: '700' }}>₹0.00</Text>
+                  </View>
+                </View>
+
+                <TouchableOpacity 
+                  onPress={confirmPayment} 
+                  disabled={addingMoney}
+                  style={{ width: '100%', backgroundColor: '#000', borderRadius: 14, paddingVertical: 16, alignItems: 'center', shadowColor: "#000", shadowOpacity: 0.2, shadowOffset: { width: 0, height: 4 }, shadowRadius: 8, elevation: 5 }}
+                >
+                  {addingMoney ? <ActivityIndicator color="#fff" /> : <Text style={{ color: '#fff', fontWeight: '800', fontSize: 16 }}>PAY NOW</Text>}
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => setPaymentStep("input")} style={{ marginTop: 16 }}>
+                  <Text style={{ color: '#666', fontWeight: '700' }}>Back</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            {paymentStep === "success" && (
+              <View style={{ alignItems: 'center', paddingVertical: 20 }}>
+                <View style={{ width: 80, height: 80, borderRadius: 40, backgroundColor: '#E9FAF2', justifyContent: 'center', alignItems: 'center', marginBottom: 24 }}>
+                  <Text style={{ fontSize: 40 }}>✅</Text>
+                </View>
+                <Text style={{ fontSize: 22, fontWeight: '800', color: '#000', marginBottom: 8 }}>Success!</Text>
+                <Text style={{ fontSize: 15, color: '#666', textAlign: 'center', fontWeight: '600' }}>₹{parseFloat(amountToAdd).toLocaleString('en-IN')} added to your wallet</Text>
+              </View>
+            )}
+
           </View>
         </View>
       </Modal>
