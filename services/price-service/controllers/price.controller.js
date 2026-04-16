@@ -19,12 +19,12 @@ exports.streamPrices = async (req, res) => {
     clients.push(res);
 
     console.log(`[SSE] Client connected. Total clients: ${clients.length}`);
-    res.write('{"message": "Streaming connected"}');
+    res.write('data: {"message": "Streaming connected"}\n\n');
 
     // Immediately send the latest cached prices if they exist
     try {
         const cachedPrices = await redis.hgetall('live_prices');
-        if (Object.keys(cachedPrices).length > 0) {
+        if (cachedPrices && Object.keys(cachedPrices).length > 0) {
             res.write(`data: ${JSON.stringify(cachedPrices)}\n\n`);
         }
     } catch (error) {
