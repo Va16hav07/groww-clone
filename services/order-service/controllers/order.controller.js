@@ -2,11 +2,11 @@ const Order = require('../models/order.model');
 const User = require('../models/user.model');
 const stockService = require('../services/stock.service');
 const { producer } = require('../config/kafkaClient');
-const { Redis } = require('@upstash/redis');
+const Redis = require('ioredis');
 
 const redis = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  host: "127.0.0.1",
+  port: 6379,
 });
 
 exports.placeOrder = async (req, res) => {

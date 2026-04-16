@@ -1,10 +1,10 @@
-const { Redis } = require('@upstash/redis');
+const Redis = require('ioredis');
 const { createConsumer } = require('../config/kafkaClient');
 const { broadcastToClients } = require('../controllers/price.controller');
 
 const redis = new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL,
-    token: process.env.UPSTASH_REDIS_REST_TOKEN,
+  host: "127.0.0.1",
+  port: 6379,
 });
 
 const consumer = createConsumer('price-broadcaster-group');
