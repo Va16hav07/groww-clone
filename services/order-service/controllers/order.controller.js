@@ -12,7 +12,7 @@ const redis = new Redis({
 exports.placeOrder = async (req, res) => {
     try {
         const { symbol, type, quantity } = req.body;
-        const userId = req.userId; 
+        const userId = req.userId;
 
         if (!symbol || !type || !quantity) {
             return res.status(400).json({ error: 'Symbol, type, and quantity are required' });
@@ -29,8 +29,8 @@ exports.placeOrder = async (req, res) => {
         if (type.toUpperCase() === 'SELL') {
             const availableQuantity = await Order.getAvailableQuantity(userId, symbol.toUpperCase());
             if (availableQuantity < quantity) {
-                return res.status(400).json({ 
-                    error: `Insufficient holdings. You only have ${availableQuantity} available shares of ${symbol.toUpperCase()}.` 
+                return res.status(400).json({
+                    error: `Insufficient holdings. You only have ${availableQuantity} available shares of ${symbol.toUpperCase()}.`
                 });
             }
         }
@@ -49,8 +49,8 @@ exports.placeOrder = async (req, res) => {
             const user = await User.findById(userId);
             const totalCost = quantity * livePrice;
             if (parseFloat(user.balance) < totalCost) {
-                return res.status(400).json({ 
-                    error: `Insufficient balance. You need ₹${totalCost.toFixed(2)} to buy these shares. Current balance: ₹${user.balance}.` 
+                return res.status(400).json({
+                    error: `Insufficient balance. You need ₹${totalCost.toFixed(2)} to buy these shares. Current balance: ₹${user.balance}.`
                 });
             }
         }

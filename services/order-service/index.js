@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const morgan = require('morgan');
-require('dotenv').config({ path: require('path').resolve(__dirname, './../../.env') });
+require('dotenv').config({ path: require('path').resolve(__dirname, '.env') });
 const orderRoutes = require('./routes/order.routes');
 const portfolioRoutes = require('./routes/portfolio.routes');
 const { connectProducer, ensureTopicsExist } = require('./config/kafkaClient');

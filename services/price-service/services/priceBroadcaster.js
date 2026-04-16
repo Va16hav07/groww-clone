@@ -19,8 +19,8 @@ const startBroadcasting = async () => {
                 try {
                     const data = JSON.parse(message.value.toString());
                     const symbol = data.symbol;
-                    const livePrice = data.price.NSE; 
-                    
+                    const livePrice = data.price.NSE;
+
                     const newPrices = { [symbol]: livePrice };
 
                     // Cache the newest prices into Redis using a Hash
