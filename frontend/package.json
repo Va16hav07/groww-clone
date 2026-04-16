@@ -11,6 +11,7 @@
   "dependencies": {
     "eventsource": "^4.1.0",
     "expo": "~55.0.8",
+    "expo-build-properties": "~55.0.13",
     "expo-local-authentication": "~55.0.13",
     "expo-secure-store": "~55.0.9",
     "expo-status-bar": "~55.0.4",
