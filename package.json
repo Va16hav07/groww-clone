@@ -23,6 +23,7 @@
   },
   "homepage": "https://github.com/Va16hav07/groww-clone#readme",
   "dependencies": {
+    "@upstash/redis": "^1.33.3",
     "autocannon": "^8.0.0",
     "axios": "^1.13.6",
     "bcryptjs": "^3.0.3",
@@ -35,8 +36,7 @@
     "ioredis": "^5.10.1",
     "jsonwebtoken": "^9.0.3",
     "kafkajs": "^2.2.4",
-    "pg": "^8.19.0",
-    "@upstash/redis": "^1.33.3"
+    "pg": "^8.19.0"
   },
   "devDependencies": {
     "concurrently": "^9.2.1",

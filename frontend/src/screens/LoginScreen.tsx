@@ -143,24 +143,6 @@ export default function LoginScreen({
             )}
           </TouchableOpacity>
 
-          {/* Divider */}
-          <View className="flex-row items-center my-8 w-full">
-            <View className="flex-1 h-[1px] bg-gray-200" />
-            <Text className="mx-4 text-gray-400 font-medium">OR</Text>
-            <View className="flex-1 h-[1px] bg-gray-200" />
-          </View>
-
-          {/* Alternate Login */}
-          <TouchableOpacity
-            className="flex-row items-center justify-center border border-gray-300 h-14 w-full rounded-xl bg-white"
-            activeOpacity={0.7}
-          >
-            <Ionicons name="logo-google" size={20} color="#ea4335" />
-            <Text className="text-gray-700 font-semibold text-base ml-3">
-              Continue with Google
-            </Text>
-          </TouchableOpacity>
-
           {/* Footer */}
           <View className="items-center mt-auto mb-4">
             <View className="flex-row mb-4">
