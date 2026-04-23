@@ -50,7 +50,7 @@ const getProxyOptions = (target) => ({
         const token = authHeader.split(' ')[1];
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secretkey');
         proxyReq.setHeader('x-user-id', decoded.id);
-      } catch (err) {}
+      } catch (err) { }
     }
   }
 });
@@ -73,7 +73,7 @@ app.use(createProxyMiddleware({
         const token = authHeader.split(' ')[1];
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'secretkey');
         proxyReq.setHeader('x-user-id', decoded.id);
-      } catch (err) {}
+      } catch (err) { }
     }
   }
 }));
@@ -89,8 +89,5 @@ app.get('/health', (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`🚀 API Gateway running on http://localhost:${PORT}`);
-  console.log(`👤 User Service: ${USER_SERVICE_URL}`);
-  console.log(`📦 Order Service: ${ORDER_SERVICE_URL}`);
-  console.log(`📡 Price Service: ${PRICE_SERVICE_URL}`);
+  console.log(` API Gateway running on http://localhost:${PORT}`);
 });

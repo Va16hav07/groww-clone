@@ -49,3 +49,11 @@ export const addMoney = async (amount: number) => {
     body: JSON.stringify({ amount })
   });
 };
+
+export const fetchPricesHistory = async () => {
+  return await fetchWithAuth('/prices/history');
+};
+
+export const fetchHistoricalPrices = async (symbol: string, timeframe: string) => {
+  return await fetchWithAuth(`/prices/historical?symbol=${symbol}&timeframe=${timeframe}`);
+};

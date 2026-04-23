@@ -1,5 +1,6 @@
 import React, { createContext, useState, useEffect, ReactNode } from "react";
 import EventSource from "react-native-sse";
+import { fetchPricesHistory } from "../services/api";
 
 export interface OHLC {
   open: number;
@@ -28,6 +29,18 @@ export const PriceProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   useEffect(() => {
     let eventSource: InstanceType<typeof EventSource> | null = null;
+
+    const fetchHistoryAndConnect = async () => {
+      try {
+        const data = await fetchPricesHistory();
+        if (data.history) {
+          setHistory(data.history);
+        }
+      } catch (err) {
+        console.error("Error fetching initial history", err);
+      }
+      connectToStream();
+    };
 
     const connectToStream = () => {
       try {
@@ -93,7 +106,7 @@ export const PriceProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       }
     };
 
-    connectToStream();
+    fetchHistoryAndConnect();
 
     return () => {
       eventSource?.close();

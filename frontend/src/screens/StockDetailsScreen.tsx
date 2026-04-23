@@ -1,8 +1,9 @@
-import React, { useState, useContext } from "react";
-import { View, Text, TouchableOpacity, ScrollView, Dimensions } from "react-native";
+import React, { useState, useContext, useEffect } from "react";
+import { View, Text, TouchableOpacity, ScrollView, Dimensions, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Svg, { Path, LinearGradient, Stop, Defs } from "react-native-svg";
 import { PriceContext, OHLC } from "../context/PriceContext";
+import { fetchHistoricalPrices } from "../services/api";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -71,6 +72,36 @@ export default function StockDetailsScreen({
   const priceContext = useContext(PriceContext);
   const currentPrice = priceContext?.prices[stock.symbol] || stock.price;
   const history = priceContext?.history[stock.symbol] || [];
+  
+  const [chartData, setChartData] = useState<OHLC[]>([]);
+  const [loadingChart, setLoadingChart] = useState(false);
+
+  useEffect(() => {
+    if (activeTab === "1D") {
+      setChartData(history);
+    } else {
+      const loadHistory = async () => {
+        setLoadingChart(true);
+        try {
+          const res = await fetchHistoricalPrices(stock.symbol, activeTab);
+          if (res.history) {
+            setChartData(res.history);
+          }
+        } catch (error) {
+          console.error("Failed to fetch historical data", error);
+        } finally {
+          setLoadingChart(false);
+        }
+      };
+      loadHistory();
+    }
+  }, [activeTab, stock.symbol]);
+  
+  useEffect(() => {
+    if (activeTab === "1D" && history.length > 0) {
+      setChartData(history);
+    }
+  }, [history, activeTab]);
   
   const isNegative = stock.change?.includes("-");
   const accentColor = isNegative ? "#F35D5D" : "#00B386";
@@ -143,7 +174,13 @@ export default function StockDetailsScreen({
         </View>
 
         {/* Candle Chart Section */}
-        <CandleChart data={history} color={accentColor} />
+        {loadingChart ? (
+          <View style={{ height: 220, justifyContent: 'center', alignItems: 'center', marginVertical: 20 }}>
+            <ActivityIndicator size="large" color={accentColor} />
+          </View>
+        ) : (
+          <CandleChart data={chartData} color={accentColor} />
+        )}
 
         {/* Timeframe Selectors */}
         <View

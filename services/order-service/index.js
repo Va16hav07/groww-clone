@@ -24,12 +24,11 @@ app.get('/health', (req, res) => {
 });
 
 app.listen(PORT, async () => {
-  console.log(`📦 Order Management Service (OMS) running on port ${PORT}`);
+  console.log(` Order Management Service (OMS) running on port ${PORT}`);
   try {
     await connectProducer();
     await ensureTopicsExist(['orders', 'failed-orders']);
-    console.log('✅ Kafka Producer connected to OMS & topics ensured.');
   } catch (err) {
-    console.error('❌ Kafka Producer connection failed in OMS:', err.message);
+    console.error(' Kafka Producer connection failed in OMS:', err.message);
   }
 });

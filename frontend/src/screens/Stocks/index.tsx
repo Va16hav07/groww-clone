@@ -74,6 +74,19 @@ export default function StocksScreen({
     INFY: "Infosys Limited",
   };
 
+  const getStockChange = (symbol: string, currentPrice: number): string => {
+    if (!currentPrice || !priceContext?.history || !priceContext.history[symbol] || priceContext.history[symbol].length === 0) {
+      return "...";
+    }
+    const history = priceContext.history[symbol];
+    const openPrice = history[0].open;
+    if (openPrice === 0) return "...";
+    const diff = currentPrice - openPrice;
+    const percent = (diff / openPrice) * 100;
+    const sign = diff >= 0 ? "+" : "";
+    return `${sign}${diff.toFixed(2)} (${sign}${percent.toFixed(2)}%)`;
+  };
+
   const getMostBoughtStocks = (): StockData[] => {
     const symbols = ["RELIANCE", "TCS", "HDFCBANK", "INFY"];
     return symbols
@@ -82,7 +95,7 @@ export default function StocksScreen({
         symbol,
         name: stockNames[symbol] || symbol,
         price: prices[symbol],
-        change: prices[symbol] ? (Number(prices[symbol]) > 1000 ? "+31.20 (2.24%)" : "-12.40 (1.10%)") : "...",
+        change: prices[symbol] ? getStockChange(symbol, Number(prices[symbol])) : "...",
       }));
   };
 
@@ -220,23 +233,6 @@ export default function StocksScreen({
               >
                 <Text style={{ color: currentView === "Holdings" ? "#FFF" : "#666", fontSize: 14, fontWeight: "700" }}>Holdings</Text>
               </TouchableOpacity>
-              <View style={{ flex: 1.2, position: 'relative' }}>
-                <TextInput
-                  placeholder={"Search stocks"}
-                  value={textInput1}
-                  onChangeText={onChangeTextInput1}
-                  style={{
-                    color: "#000000",
-                    fontSize: 14,
-                    borderColor: "#E8E8E8",
-                    borderRadius: 20,
-                    borderWidth: 1,
-                    paddingVertical: 10,
-                    paddingHorizontal: 16,
-                    backgroundColor: "#FFF",
-                  }}
-                />
-              </View>
             </View>
 
             {currentView === "Explore" ? (
@@ -354,7 +350,7 @@ export default function StocksScreen({
                         symbol: holding.symbol,
                         name: stockNames[holding.symbol] || holding.symbol,
                         price: currentP,
-                        change: "+0.00 (0.00%)" // Dummy change for now
+                        change: getStockChange(holding.symbol, Number(currentP))
                       };
                       
                       return (

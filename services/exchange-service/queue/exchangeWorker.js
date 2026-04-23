@@ -9,15 +9,12 @@ const startWorker = async () => {
         await consumer.connect();
         await consumer.subscribe({ topic: 'orders', fromBeginning: false });
 
-        console.log('[Exchange Gateway] Listening for Orders on Kafka...');
-
         await consumer.run({
             eachMessage: async ({ topic, partition, message }) => {
                 let orderId;
                 try {
                     const jobData = JSON.parse(message.value.toString());
                     orderId = jobData.orderId;
-                    console.log(`[Exchange Gateway] Received order: ${orderId}. Processing...`);
 
                     // Simulate Exchange execution delay
                     await new Promise(resolve => setTimeout(resolve, 3000));
@@ -28,7 +25,6 @@ const startWorker = async () => {
                     const amountChange = jobData.type === 'BUY' ? -(jobData.price * jobData.quantity) : (jobData.price * jobData.quantity);
                     await User.updateBalance(jobData.userId, amountChange);
                     
-                    console.log(`[Exchange Gateway] Order ${orderId} executed! Balance mutated by ${amountChange}`);
                 } catch (err) {
                     console.error(`[Exchange Gateway] Failed to execute order ${orderId || 'unknown'}:`, err);
                     if (orderId) {
@@ -39,7 +35,6 @@ const startWorker = async () => {
                                 topic: 'failed-orders',
                                 messages: [{ value: JSON.stringify({ orderId, error: err.message || 'Execution Failed' }) }]
                             });
-                            console.log(`[DLQ] Order ${orderId} routed to Dead-Letter Queue.`);
                         } catch (fatalErr) {
                             console.error('[DLQ] Fatal failure:', fatalErr);
                         }

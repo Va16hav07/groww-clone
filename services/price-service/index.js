@@ -22,6 +22,6 @@ app.get('/health', (req, res) => {
 });
 
 app.listen(PORT, async () => {
-  console.log(`📡 Price Service running on port ${PORT}`);
+  console.log(`Price Service running on port ${PORT}`);
   await startBroadcasting();
 });

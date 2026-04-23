@@ -81,8 +81,7 @@ export default function OrderEntryScreen({
         "Order Successful",
         `${tradeType} order for ${qty} shares of ${symbol} has been executed at ₹${currentPrice}.`,
         [
-          { text: "View Portfolio", onPress: onNavigateToOrders },
-          { text: "OK", style: "cancel" },
+          { text: "OK", onPress: onBack },
         ],
       );
     } catch (error: any) {

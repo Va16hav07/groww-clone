@@ -41,12 +41,10 @@ const startGateway = async () => {
     const topics = await admin.listTopics();
     if (!topics.includes('market-prices')) {
       await admin.createTopics({ topics: [{ topic: 'market-prices', numPartitions: 1 }] });
-      console.log('[Dummy Gateway] Created market-prices topic');
     }
     await admin.disconnect();
 
     await producer.connect();
-    console.log('[Dummy Gateway] Connected to Kafka Producer');
   } catch(err) {
     console.error('[Dummy Gateway] Kafka connection failed:', err);
   }
@@ -104,7 +102,6 @@ const startGateway = async () => {
 
   app.listen(PORT, () => {
     console.log(`[Dummy Gateway] Mock Indian Stock API running on http://localhost:${PORT}`);
-    console.log(`[Dummy Gateway] Prices ticking every 5 seconds to Kafka.`);
   });
 };
 

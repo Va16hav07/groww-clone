@@ -13,12 +13,10 @@ console.log('Server is running');
 
 server.listen(PORT, async () => {
     console.log(`Server is running on port ${PORT}`);
-    console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
     
     // Ensure Topics Exist
     await ensureTopicsExist(['orders', 'market-prices', 'failed-orders']);
 
-    // Connect Kafka Producer and start Kafka Consumer
     await connectProducer();
     await startWorker();
 

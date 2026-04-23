@@ -23,7 +23,6 @@ const admin = kafka.admin();
 const connectProducer = async () => {
   try {
     await producer.connect();
-    console.log('[Kafka] Producer connected successfully');
   } catch (error) {
     console.error('[Kafka] Producer connection error:', error);
   }
@@ -47,7 +46,6 @@ const ensureTopicsExist = async (topics) => {
             await admin.createTopics({
                 topics: topicsToCreate.map(topic => ({ topic, numPartitions: 1 }))
             });
-            console.log(`[Kafka Admin] Created missing topics: ${topicsToCreate.join(', ')}`);
         }
     } catch (error) {
         console.error('[Kafka Admin] Failed to create topics:', error);

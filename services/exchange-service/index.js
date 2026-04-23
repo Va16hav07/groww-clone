@@ -14,11 +14,9 @@ app.get('/health', (req, res) => {
 });
 
 app.listen(PORT, async () => {
-  console.log(`📡 Exchange Service (Worker) running health-check on port ${PORT}`);
   try {
     await startWorker();
-    console.log('✅ Exchange Worker initialized and listening to Kafka');
   } catch (err) {
-    console.error('❌ Exchange Worker failed to start:', err.message);
+    console.error(' Exchange Worker failed to start:', err.message);
   }
 });

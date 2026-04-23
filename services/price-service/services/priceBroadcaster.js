@@ -23,6 +23,32 @@ const startBroadcasting = async () => {
 
                     const newPrices = { [symbol]: livePrice };
 
+                    // Update live_history
+                    const rawHistory = await redis.hget('live_history', symbol);
+                    let stockHistory = rawHistory ? JSON.parse(rawHistory) : [];
+                    
+                    const now = Date.now();
+                    const lastCandle = stockHistory[stockHistory.length - 1];
+                    
+                    if (!lastCandle || (now - lastCandle.timestamp) > 10000) {
+                        const newCandle = {
+                            open: lastCandle ? lastCandle.close : livePrice,
+                            high: Math.max(lastCandle ? lastCandle.close : livePrice, livePrice),
+                            low: Math.min(lastCandle ? lastCandle.close : livePrice, livePrice),
+                            close: livePrice,
+                            timestamp: now,
+                        };
+                        stockHistory.push(newCandle);
+                        if (stockHistory.length > 40) stockHistory = stockHistory.slice(-40);
+                    } else {
+                        lastCandle.close = livePrice;
+                        lastCandle.high = Math.max(lastCandle.high, livePrice);
+                        lastCandle.low = Math.min(lastCandle.low, livePrice);
+                        stockHistory[stockHistory.length - 1] = lastCandle;
+                    }
+                    
+                    await redis.hset('live_history', symbol, JSON.stringify(stockHistory));
+
                     // Cache the newest prices into Redis using a Hash
                     await redis.hset('live_prices', newPrices);
 
