@@ -1,3 +1,4 @@
+const express = require('express');
 const { streamPrices, getHistory, getHistoricalData } = require('../controllers/price.controller');
 
 const router = express.Router();
