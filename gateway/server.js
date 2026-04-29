@@ -28,6 +28,13 @@ const kafka = new Kafka({
 const producer = kafka.producer();
 const admin = kafka.admin();
 
+const initialMarketState = {
+  RELIANCE: { NSE: 1384.80, BSE: 1384.25 },
+  TCS:      { NSE: 2356.00, BSE: 2355.45 },
+  HDFCBANK: { NSE: 798.20,  BSE: 797.65 },
+  INFY:     { NSE: 1220.80, BSE: 1220.25 }
+};
+
 const marketState = {
   RELIANCE: { NSE: 1384.80, BSE: 1384.25 },
   TCS:      { NSE: 2356.00, BSE: 2355.45 },
@@ -52,10 +59,18 @@ const startGateway = async () => {
   setInterval(async () => {
     const messages = [];
     for (const symbol in marketState) {
-      const driftPercentage = (Math.random() * 0.10) - 0.05; 
+      // Reduced volatility: -0.005 to +0.005 (0.5% max movement per tick)
+      const driftPercentage = (Math.random() * 0.01) - 0.005; 
       
       marketState[symbol].NSE += marketState[symbol].NSE * driftPercentage;
       marketState[symbol].BSE += marketState[symbol].BSE * driftPercentage;
+
+      // Add a simple mean-reversion force to prevent prices from dropping to 0 or exploding
+      const nseDiff = initialMarketState[symbol].NSE - marketState[symbol].NSE;
+      const bseDiff = initialMarketState[symbol].BSE - marketState[symbol].BSE;
+      
+      marketState[symbol].NSE += nseDiff * 0.02; // pull 2% towards initial price
+      marketState[symbol].BSE += bseDiff * 0.02;
 
       messages.push({
           key: symbol,

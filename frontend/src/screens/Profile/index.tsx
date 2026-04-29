@@ -3,6 +3,7 @@ import { fetchPortfolio, addMoney } from "../../services/api";
 import { View, ScrollView, Image, Text, TouchableOpacity, Modal, TextInput, ActivityIndicator, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AuthContext } from "../../context/AuthContext";
+import { Ionicons } from "@expo/vector-icons";
 
 interface ProfileScreenProps {
   onNavigateToHome?: () => void;
@@ -107,16 +108,7 @@ export default function ProfileScreen({
           }}
         >
           <TouchableOpacity onPress={onNavigateToHome}>
-            <Image
-              source={{
-                uri: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/w8lS8rAT8w/6vl7o6m6_expires_30_days.png",
-              }}
-              resizeMode={"stretch"}
-              style={{
-                width: 32,
-                height: 18,
-              }}
-            />
+            <Ionicons name="arrow-back-outline" size={28} color="#000" />
           </TouchableOpacity>
           <View
             style={{
@@ -124,27 +116,8 @@ export default function ProfileScreen({
               alignItems: "center",
             }}
           >
-            <Image
-              source={{
-                uri: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/w8lS8rAT8w/f8rbj579_expires_30_days.png",
-              }}
-              resizeMode={"stretch"}
-              style={{
-                width: 26,
-                height: 26,
-                marginRight: 25,
-              }}
-            />
-            <Image
-              source={{
-                uri: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/w8lS8rAT8w/n69612ru_expires_30_days.png",
-              }}
-              resizeMode={"stretch"}
-              style={{
-                width: 26,
-                height: 26,
-              }}
-            />
+            <Ionicons name="settings-outline" size={26} color="#000" style={{ marginRight: 25 }} />
+            <Ionicons name="notifications-outline" size={26} color="#000" />
           </View>
         </View>
         <View
@@ -223,17 +196,7 @@ export default function ProfileScreen({
                   alignItems: "center",
                 }}
               >
-                <Image
-                  source={{
-                    uri: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/w8lS8rAT8w/1sr6mp42_expires_30_days.png",
-                  }}
-                  resizeMode={"stretch"}
-                  style={{
-                    width: 30,
-                    height: 30,
-                    marginRight: 20,
-                  }}
-                />
+                <Ionicons name="wallet-outline" size={30} color="#059669" style={{ marginRight: 20 }} />
                 <View>
                   <Text
                     style={{
@@ -266,18 +229,7 @@ export default function ProfileScreen({
                 }}
                 onPress={() => setAddMoneyVisible(true)}
               >
-                <Image
-                  source={{
-                    uri: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/w8lS8rAT8w/j1wzdrii_expires_30_days.png",
-                  }}
-                  resizeMode={"stretch"}
-                  style={{
-                    borderRadius: 8,
-                    width: 20,
-                    height: 20,
-                    marginRight: 8,
-                  }}
-                />
+                <Ionicons name="add-circle-outline" size={20} color="#32B495" style={{ marginRight: 8 }} />
                 <Text
                   style={{
                     color: "#32B495",
@@ -316,17 +268,7 @@ export default function ProfileScreen({
                 marginBottom: 25,
               }}
             >
-              <Image
-                source={{
-                  uri: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/w8lS8rAT8w/ij3tm405_expires_30_days.png",
-                }}
-                resizeMode={"stretch"}
-                style={{
-                  width: 30,
-                  height: 30,
-                  marginRight: 20,
-                }}
-              />
+              <Ionicons name="document-text-outline" size={30} color="#000" style={{ marginRight: 20 }} />
               <View
                 style={{
                   paddingBottom: 1,
@@ -431,10 +373,7 @@ export default function ProfileScreen({
             {paymentStep === "gateway" && (
               <View style={{ alignItems: 'center' }}>
                 <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: '#E9FAF2', justifyContent: 'center', alignItems: 'center', marginBottom: 20 }}>
-                  <Image 
-                    source={{ uri: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/w8lS8rAT8w/1sr6mp42_expires_30_days.png" }}
-                    style={{ width: 30, height: 30 }}
-                  />
+                  <Ionicons name="wallet-outline" size={30} color="#059669" />
                 </View>
                 <Text style={{ fontSize: 18, fontWeight: '800', color: '#000', marginBottom: 4 }}>Secure Payment</Text>
                 <Text style={{ fontSize: 24, fontWeight: '900', color: '#059669', marginBottom: 24 }}>₹{parseFloat(amountToAdd).toLocaleString('en-IN')}</Text>

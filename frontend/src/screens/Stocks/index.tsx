@@ -12,6 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { AuthContext } from "../../context/AuthContext";
 import { PriceContext } from "../../context/PriceContext";
 import { fetchPortfolio } from "../../services/api";
+import { Ionicons } from "@expo/vector-icons";
 
 import BottomNavBar from "../../components/BottomNavBar";
 
@@ -129,17 +130,18 @@ export default function StocksScreen({
               }}
             >
               <Image
-                source={{ uri: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/w8lS8rAT8w/afd3chsl_expires_30_days.png" }}
-                resizeMode="stretch"
+                source={require("../../../assets/logo.png")}
+                resizeMode="contain"
                 style={{ width: 35, height: 35, marginRight: 13 }}
               />
               <Text style={{ color: "#000000", fontSize: 18, fontWeight: "800" }}>Stocks</Text>
               <View style={{ flex: 1 }} />
               <TouchableOpacity>
-                <Image
-                  source={{ uri: "https://storage.googleapis.com/tagjs-prod.appspot.com/v1/w8lS8rAT8w/u7un6b0g_expires_30_days.png" }}
-                  resizeMode="stretch"
-                  style={{ width: 24, height: 24, marginRight: 25 }}
+                <Ionicons
+                  name="search-outline"
+                  size={24}
+                  color="#000"
+                  style={{ marginRight: 25 }}
                 />
               </TouchableOpacity>
               <TouchableOpacity onPress={onNavigateToProfile}>
